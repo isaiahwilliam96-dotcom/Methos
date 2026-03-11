@@ -233,7 +233,7 @@ difficulty = st.selectbox(
 # -----------------------
 # Input
 # -----------------------
-st.markdown('<div class="animated-section">### 📝 Enter Your Problem</div>', unsafe_allow_html=True)
+st.markdown('<div class="animated-section"><h3>📝 Enter Your Problem</h3></div>', unsafe_allow_html=True)
 
 user_input = st.text_area(
     "",
@@ -578,3 +578,4 @@ if 0 < st.session_state.hint_level < 4:
         st.session_state.hint_level = 0
 
         st.rerun()
+
