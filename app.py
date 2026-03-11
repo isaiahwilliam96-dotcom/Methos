@@ -576,4 +576,5 @@ if 0 < st.session_state.hint_level < 4:
         st.success(f"Score: {st.session_state.score}")
 
         st.session_state.hint_level = 0
+
         st.rerun()
