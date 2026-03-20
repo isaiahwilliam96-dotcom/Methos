@@ -255,11 +255,27 @@ if uploaded_file:
     encoded_image = base64.b64encode(image_bytes).decode()
 
     response = client.responses.create(
-        model="gpt-4.1",
-        input=[{
-            "role":"user",
-            "content":[
-                {"type":"input_text","text":"Extract the math problem only."},
+    model="gpt-4.1",
+    input=[{
+        "role":"user",
+        "content":[
+            {
+                "type":"input_text",
+                "text": """
+Extract the math function and convert it into a valid Python SymPy expression.
+
+STRICT RULES:
+- Use * for multiplication (2*x, not 2x)
+- Use ** for powers (x**2, not x^2)
+- Use standard functions: sin(x), cos(x), log(x), sqrt(x)
+- Do NOT include explanations
+- Do NOT include words
+- Output ONLY the expression
+
+Example:
+x^2 + 2x + 1 → x**2 + 2*x + 1
+"""
+            },
                 {
                     "type":"input_image",
                     "image_url":f"data:image/jpeg;base64,{encoded_image}"
@@ -316,17 +332,14 @@ Student Answer:
 
     st.write(response.output_text)
 
+# -----------------------
+# Generate Graph Button
+# -----------------------
 if st.button("📊 Generate Graph"):
 
     response = client.responses.create(
         model="gpt-4.1",
-        input=f"""
-Extract the function from this problem.
-
-Rules:
-- Return only the function in terms of x
-- Example: x^2 + 3*x - 2
-- Do not include 'y ='
+        input=f"""Convert into valid SymPy expression only.
 
 Problem:
 {user_input}
@@ -335,55 +348,131 @@ Problem:
 
     expr_text = response.output_text.strip()
     expr_text = expr_text.replace("^", "**")
+    expr_text = expr_text.replace(" ", "")
 
-    st.write("Detected function:", expr_text)
+    st.session_state.expr_text = expr_text
 
-    roots = []
-    critical_points = []
 
+# -----------------------
+# ✅ PUT YOUR BLOCK HERE
+# -----------------------
+# -----------------------
+# ✏️ Expression Editor (UPGRADED)
+# -----------------------
+if "expr_text" not in st.session_state:
+    st.info("Click 'Generate Graph' to begin.")
+
+else:
+    edited_expr = st.text_area(
+        "✏️ Edit Expression",
+        key="expr_text",
+        height=100,
+        placeholder="e.g. x**2 + 2*x + 1"
+    )
+
+    # Clear button
+    if st.button("🗑 Clear Expression"):
+        st.session_state.expr_text = ""
+        st.rerun()
+
+    # Live validation
     try:
-        x = sp.symbols('x')
-        expr = sp.sympify(expr_text)
+        expr = sp.sympify(edited_expr)
 
-        f = sp.lambdify(x, expr, "numpy")
+        st.success("✅ Valid expression")
+        st.write("Detected function:", edited_expr)
+        st.latex(sp.latex(expr))
 
-        x_vals = np.linspace(-5, 5, 400)
-        y_vals = f(x_vals)
+    except:
+        st.error("❌ Invalid expression")
+        st.stop()
 
-        fig, ax = plt.subplots()
-        ax.plot(x_vals, y_vals)
+# -----------------------
+# 📊 Graph Section
+# -----------------------
+try:
+    x = sp.symbols('x')
+    expr = sp.sympify(st.session_state.expr_text)
 
-        # ROOTS
-        roots = sp.solve(expr, x)
+    f = sp.lambdify(x, expr, "numpy")
 
-        for r in roots:
-            if r.is_real:
-                ax.scatter(float(r), 0)
-                st.write("Root:", r)
+    x_vals = np.linspace(-5, 5, 400)
 
-        # TURNING POINTS
-        derivative = sp.diff(expr, x)
-        critical_points = sp.solve(derivative, x)
+    y_vals = []
+    for val in x_vals:
+        try:
+            y = f(val)
+            if np.isfinite(y):
+                y_vals.append(y)
+            else:
+                y_vals.append(np.nan)
+        except:
+            y_vals.append(np.nan)
 
-        for cp in critical_points:
-            if cp.is_real:
-                y_val = expr.subs(x, cp)
-                ax.scatter(float(cp), float(y_val))
-                st.write(f"Turning point: ({cp}, {y_val})")
+    y_vals = np.array(y_vals)
 
-        ax.set_title("Graph of the Function")
-        ax.grid(True)
+    fig, ax = plt.subplots()
+    ax.plot(x_vals, y_vals)
 
-        st.pyplot(fig)
+    ax.grid(True)
+    st.pyplot(fig)
 
-    except Exception as e:
-        st.error(f"Graph error: {e}")
-      
+except Exception as e:
+    st.error(f"Graph error: {e}")
+
+    fig, ax = plt.subplots()
+    ax.plot(x_vals, y_vals)
+
+    # ROOTS
+    roots = sp.solve(expr, x)
     for r in roots:
-        ax.scatter(float(r), 0)
+        if r.is_real:
+            ax.scatter(float(r), 0)
+            st.write("Root:", r)
+
+    # TURNING POINTS
+    derivative = sp.diff(expr, x)
+    critical_points = sp.solve(derivative, x)
 
     for cp in critical_points:
-        ax.scatter(float(cp), float(expr.subs(x, cp)))
+        if cp.is_real:
+            y_val = expr.subs(x, cp)
+            ax.scatter(float(cp), float(y_val))
+            st.write(f"Turning point: ({cp}, {y_val})")
+
+    ax.set_title("Graph of the Function")
+    ax.grid(True)
+
+    # ✅ EVERYTHING BELOW MUST BE INSIDE TRY
+    st.pyplot(fig)
+
+    st.markdown("### 🧩 Step-by-Step Solution")
+
+    equation = sp.Eq(expr, 0)
+    solutions = sp.solve(equation, x)
+
+    st.markdown("**Step 1 → Form the equation**")
+    st.latex(f"{sp.latex(expr)} = 0")
+
+    if sp.degree(expr) == 2:
+        st.markdown("**Step 2 → Recognise quadratic**")
+        factored = sp.factor(expr)
+        st.markdown("**Step 3 → Factorise**")
+        st.latex(f"{sp.latex(factored)} = 0")
+
+    st.markdown("**Step 4 → Solve**")
+    for sol in solutions:
+        if sol.is_real:
+            st.latex(f"x = {sp.latex(sol)}")
+
+    st.markdown("### ✅ Final Answer")
+    for sol in solutions:
+        if sol.is_real:
+            st.latex(f"x = {sp.latex(sol)}")
+
+# ✅ THIS MUST EXIST
+except Exception as e:
+    st.error(f"Graph error: {e}")
 
 # -----------------------
 # Identify Topic
@@ -576,6 +665,4 @@ if 0 < st.session_state.hint_level < 4:
         st.success(f"Score: {st.session_state.score}")
 
         st.session_state.hint_level = 0
-
         st.rerun()
-
