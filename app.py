@@ -1,4 +1,4 @@
-import streamlit as st
+mport streamlit as st
 from openai import OpenAI
 import os
 import matplotlib.pyplot as plt
@@ -106,9 +106,6 @@ if "answer" not in st.session_state:
 
 if "current_problem" not in st.session_state:
     st.session_state.current_problem = ""
-
-if "expr_text" not in st.session_state:
-    st.session_state.expr_text = ""
 
 # -----------------------
 # Sidebar
@@ -348,67 +345,6 @@ with tab_practice:
 
             st.write(response.output_text)
 
-        # -----------------------
-        # Generate Graph Button
-        # -----------------------
-        if st.button("📊 Generate Graph"):
-
-            response = client.responses.create(
-                model="gpt-4.1",
-                input=f"""Convert into valid SymPy expression only.
-
-    Problem:
-    {user_input}
-    """
-            )
-
-            expr_text = response.output_text.strip()
-            expr_text = expr_text.replace("^", "**")
-            expr_text = expr_text.replace(" ", "")
-
-            st.session_state.expr_text = expr_text
-
-    # -----------------------
-    # 📊 Graph Section
-    # -----------------------
-
-    if not st.session_state.expr_text:
-        st.info("Click 'Generate Graph' first.")
-
-    if st.session_state.expr_text:
-
-        try:
-            x = sp.symbols('x')
-
-            expr_raw = sp.sympify(st.session_state.expr_text)
-
-            # 🔥 FIX: handle equation vs function
-            if isinstance(expr_raw, sp.Equality):
-                expr = expr_raw.lhs - expr_raw.rhs
-            else:
-                expr = expr_raw
-
-            # 🔥 SAFETY: must depend on x
-            if not expr.has(x):
-                st.error("Expression must contain variable x")
-                st.stop()
-
-            f = sp.lambdify(x, expr, "numpy")
-
-            x_vals = np.linspace(-10, 10, 400)
-            y_vals = np.array([
-                f(val) if np.isfinite(f(val)) else np.nan
-                for val in x_vals
-            ])
-
-            fig, ax = plt.subplots()
-            ax.plot(x_vals, y_vals)
-            ax.axhline(0)
-            ax.axvline(0)
-            ax.grid(True)
-
-            st.pyplot(fig)
-
             # -----------------------
             # METHOD DETECTION
             # -----------------------
@@ -438,9 +374,6 @@ with tab_practice:
                 for sol in solutions:
                     if sol.is_real:
                         st.latex(f"x = {sp.latex(sol)}")
-
-        except Exception as e:
-            st.error(f"Graph error: {e}")
 
     # -----------------------
     # Identify Topic
