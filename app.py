@@ -702,6 +702,146 @@ with tab_practice:
         2. Choose x₀
         3. Iterate until accurate
         """)
+            if chapter == "Chapter 2: Integration":
+
+                st.markdown("## 📗 Chapter 2: Integration")
+
+                # =========================
+                # 2.1 Integration of Functions
+                # =========================
+                with st.expander("📘 2.1 Integration of Functions", expanded=True):
+
+                    st.markdown("### 📌 Learning Outcomes")
+                    st.info("""
+                    LO1: Relate integration and differentiation  
+                    LO2: Define basic rules of integration  
+                    LO3: Integrate exponential functions
+                    """)
+
+                    st.markdown("### 🔁 Relationship")
+                    st.latex(r"F(x) = x^3 \quad \Rightarrow \quad f(x) = 3x^2")
+
+                    st.markdown("Integration is the reverse of differentiation.")
+
+                    st.latex(r"\int f'(x)\,dx = f(x) + C")
+
+                # =========================
+                # 2.2 Basic Rules
+                # =========================
+                with st.expander("📘 2.2 Basic Rules of Integration"):
+
+                    st.markdown("### 📦 Core Rules")
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.latex(r"\int k\,dx = kx + C")
+                        st.latex(r"\int x^n dx = \frac{x^{n+1}}{n+1} + C")
+                        st.latex(r"\int kf(x)dx = k \int f(x)dx")
+
+                    with col2:
+                        st.latex(r"\int [f(x) \pm g(x)]dx = \int f(x)dx \pm \int g(x)dx")
+                        st.latex(r"\int \frac{1}{x}dx = \ln|x| + C")
+                        st.latex(r"\int \frac{1}{ax+b}dx = \frac{1}{a}\ln|ax+b| + C")
+
+                    st.warning("⚠️ ∫f(x)g(x)dx ≠ ∫f(x)dx × ∫g(x)dx")
+
+                # =========================
+                # 2.3 Techniques
+                # =========================
+                with st.expander("📘 2.3 Techniques of Integration"):
+
+                    st.markdown("### 🔄 Substitution Method")
+                    st.latex(r"\int f(x)g'(x)dx = \int f(u)du")
+
+                    st.markdown("""
+                    Steps:
+                    1. Let u = g(x)
+                    2. Find du
+                    3. Substitute
+                    """)
+
+                    st.markdown("### 🧩 Integration by Parts")
+                    st.latex(r"\int u\,dv = uv - \int v\,du")
+
+                    st.info("Use **LPET** → Logarithmic, Polynomial, Exponential, Trigonometric")
+
+                # =========================
+                # 2.4 Definite Integrals
+                # =========================
+                with st.expander("📘 2.4 Definite Integrals"):
+
+                    st.latex(r"\int_a^b f(x)dx = F(b) - F(a)")
+
+                    st.markdown("### Properties")
+
+                    st.latex(r"\int_a^b f(x)dx = -\int_b^a f(x)dx")
+                    st.latex(r"\int_a^a f(x)dx = 0")
+                    st.latex(r"\int_a^c f(x)dx = \int_a^b f(x)dx + \int_b^c f(x)dx")
+
+                # =========================
+                # 2.5 Area of Region
+                # =========================
+                with st.expander("📘 2.5 Area of a Region"):
+
+                    st.markdown("### 📐 Area under curve")
+                    st.latex(r"Area = \int_a^b f(x)dx")
+
+                    st.markdown("### Between two curves")
+                    st.latex(r"Area = \int_a^b [f(x) - g(x)]dx")
+
+                    st.info("Area is always positive")
+
+                # =========================
+                # Volume of Revolution
+                # =========================
+                with st.expander("🧊 Volume of Solid of Revolution"):
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown("About x-axis")
+                        st.latex(r"V = \pi \int_a^b y^2 dx")
+
+                    with col2:
+                        st.markdown("About y-axis")
+                        st.latex(r"V = \pi \int_c^d x^2 dy")
+
+                # =========================
+                # Trapezoidal Rule
+                # =========================
+                with st.expander("📊 Trapezoidal Rule"):
+
+                    st.latex(r"\int_a^b f(x)dx \approx \frac{h}{2}[y_0 + y_n + 2(y_1 + ... + y_{n-1})]")
+
+                    st.markdown("""
+                    Steps:
+                    1. Find h = (b-a)/n  
+                    2. Create table  
+                    3. Apply formula  
+                    """)
+
+                # =========================
+                # Trigonometric Integrals
+                # =========================
+                with st.expander("📐 Trigonometric Integrals"):
+
+                    st.latex(r"\int \sin x dx = -\cos x + C")
+                    st.latex(r"\int \cos x dx = \sin x + C")
+                    st.latex(r"\int \sec^2 x dx = \tan x + C")
+
+                    st.info("If power is odd → use substitution")
+
+                # =========================
+                # Test Yourself
+                # =========================
+                with st.expander("📝 Test Yourself"):
+
+                    st.markdown("""
+                    1. ∫(e^x + e^{-x})dx  
+                    2. ∫4^x dx  
+                    3. ∫(x+3)^4 dx  
+                    """)
 
     # =========================
     # 📊 VISUAL TAB
