@@ -345,36 +345,6 @@ with tab_practice:
 
             st.write(response.output_text)
 
-            # -----------------------
-            # METHOD DETECTION
-            # -----------------------
-
-            st.markdown("### 🧩 Step-by-Step Solution")
-
-            if "newton" in user_input.lower() or "raphson" in user_input.lower():
-
-                st.markdown("### 🧩 Newton-Raphson Method")
-
-                f_prime = sp.diff(expr, x)
-
-                x0 = 3  # better start
-
-                for i in range(5):
-                    x1 = x0 - (f.subs(x, x0) / f_prime.subs(x, x0))
-                    st.write(f"Iteration {i}: x = {float(x0):.5f}")
-                    x0 = x1
-
-                st.write(f"Final ≈ {float(x0):.5f}")
-
-            else:
-                solutions = sp.solve(expr, x)
-
-                st.latex(sp.latex(sp.Eq(expr, 0)))
-
-                for sol in solutions:
-                    if sol.is_real:
-                        st.latex(f"x = {sp.latex(sol)}")
-
     # -----------------------
     # Identify Topic
     # -----------------------
