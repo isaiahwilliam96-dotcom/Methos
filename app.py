@@ -8,8 +8,6 @@ import numpy as np
 import sympy as sp
 import streamlit.components.v1 as components
 
-st.set_page_config(layout="centered")
-
 st.markdown("""
 <style>
 
@@ -108,6 +106,9 @@ if "answer" not in st.session_state:
 
 if "current_problem" not in st.session_state:
     st.session_state.current_problem = ""
+
+if "expr_text" not in st.session_state:
+    st.session_state.expr_text = ""
 
 # -----------------------
 # Sidebar
@@ -216,453 +217,597 @@ with col2:
     st.write(f"Hint Level: {st.session_state.hint_level}")
 st.progress(min(st.session_state.score / 10, 1.0))
 st.markdown("### Adaptive AI Scaffolding for Matriculation Mathematics")
+
+# =========================
+# MAIN TABS
+# =========================
+tab_practice, tab_notes, tab_visual, tab_progress = st.tabs([
+    "🧠 Practice",
+    "📖 Notes",
+    "📊 Visualize",
+    "🏆 Progress"
+])
+
 st.markdown(
 '<div class="animated-subtitle">Guided hints • Cognitive tracking • Independent learning</div>',
 unsafe_allow_html=True
 )
-st.write("I give hints, not answers.")
 
-# -----------------------
-# Difficulty
-# -----------------------
-difficulty = st.selectbox(
-    "Select Difficulty Level:",
-    ["Beginner", "Intermediate", "Advanced"]
-)
+    # =========================
+    # 🧠 PRACTICE TAB
+    # =========================
+with tab_practice:
 
-# -----------------------
-# Input
-# -----------------------
-st.markdown('<div class="animated-section"><h3>📝 Enter Your Problem</h3></div>', unsafe_allow_html=True)
+    st.write("I give hints, not answers.")
 
-user_input = st.text_area(
-    "",
-    height=150,
-    placeholder="Type your math question here..."
-)
+    difficulty = st.selectbox(
+        "Select Difficulty Level:",
+        ["Beginner", "Intermediate", "Advanced"]
+    )
 
-uploaded_file = st.file_uploader(
-    "Upload a photo of your math problem",
-    type=["png", "jpg", "jpeg"]
-)
+    # -----------------------
+    # Input
+    # -----------------------
+    st.markdown('<div class="animated-section"><h3>📝 Enter Your Problem</h3></div>', unsafe_allow_html=True)
 
-# -----------------------
-# Image Extraction
-# -----------------------
-if uploaded_file:
+    user_input = st.text_area(
+        "",
+        height=150,
+        placeholder="Type your math question here..."
+    )
 
-    image_bytes = uploaded_file.read()
-    encoded_image = base64.b64encode(image_bytes).decode()
+    uploaded_file = st.file_uploader(
+        "Upload a photo of your math problem",
+        type=["png", "jpg", "jpeg"]
+    )
 
-    response = client.responses.create(
-    model="gpt-4.1",
-    input=[{
-        "role":"user",
-        "content":[
-            {
-                "type":"input_text",
-                "text": """
-Extract the math function and convert it into a valid Python SymPy expression.
+    # -----------------------
+    # Image Extraction
+    # -----------------------
+    if uploaded_file:
 
-STRICT RULES:
-- Use * for multiplication (2*x, not 2x)
-- Use ** for powers (x**2, not x^2)
-- Use standard functions: sin(x), cos(x), log(x), sqrt(x)
-- Do NOT include explanations
-- Do NOT include words
-- Output ONLY the expression
+        image_bytes = uploaded_file.read()
+        encoded_image = base64.b64encode(image_bytes).decode()
 
-Example:
-x^2 + 2x + 1 → x**2 + 2*x + 1
-"""
-            },
+        response = client.responses.create(
+        model="gpt-4.1",
+        input=[{
+            "role":"user",
+            "content":[
                 {
-                    "type":"input_image",
-                    "image_url":f"data:image/jpeg;base64,{encoded_image}"
-                }
-            ]
-        }]
-    )
+                    "type":"input_text",
+                    "text": """
+    Extract the math function and convert it into a valid Python SymPy expression.
 
-    user_input = response.output_text
-    st.info("📷 Problem extracted from image.")
+    STRICT RULES:
+    - Use * for multiplication (2*x, not 2x)
+    - Use ** for powers (x**2, not x^2)
+    - Use standard functions: sin(x), cos(x), log(x), sqrt(x)
+    - Do NOT include explanations
+    - Do NOT include words
+    - Output ONLY the expression
 
-# -----------------------
-# Reset hints if new problem
-# -----------------------
-if user_input != st.session_state.current_problem:
-
-    st.session_state.current_problem = user_input
-    st.session_state.hint_level = 0
-    st.session_state.answer = ""
-
-if not user_input:
-    st.stop()
-
-st.success("Problem detected")
-# -----------------------
-# Student Attempt Section
-# -----------------------
-
-st.markdown("### ✏️ Try Solving")
-
-student_answer = st.text_input(
-    "Enter your answer:",
-    placeholder="Example: x = 4"
-)
-
-if st.button("Check My Answer"):
-    response = client.responses.create(
-        model="gpt-4.1",
-        input=f"""
-Check if the student's answer is correct.
-
-Rules:
-- Only say "Correct ✅" or "Incorrect ❌"
-- If incorrect, give a very small hint.
-- Do NOT show full solution.
-
-Problem:
-{user_input}
-
-Student Answer:
-{student_answer}
-"""
-    )
-
-    st.write(response.output_text)
-
-# -----------------------
-# Generate Graph Button
-# -----------------------
-if st.button("📊 Generate Graph"):
-
-    response = client.responses.create(
-        model="gpt-4.1",
-        input=f"""Convert into valid SymPy expression only.
-
-Problem:
-{user_input}
-"""
-    )
-
-    expr_text = response.output_text.strip()
-    expr_text = expr_text.replace("^", "**")
-    expr_text = expr_text.replace(" ", "")
-
-    st.session_state.expr_text = expr_text
-
-
-# -----------------------
-# ✅ PUT YOUR BLOCK HERE
-# -----------------------
-# -----------------------
-# ✏️ Expression Editor (UPGRADED)
-# -----------------------
-if "expr_text" not in st.session_state:
-    st.info("Click 'Generate Graph' to begin.")
-
-else:
-    edited_expr = st.text_area(
-        "✏️ Edit Expression",
-        key="expr_text",
-        height=100,
-        placeholder="e.g. x**2 + 2*x + 1"
-    )
-
-    # Clear button
-    if st.button("🗑 Clear Expression"):
-        st.session_state.expr_text = ""
-        st.rerun()
-
-    # Live validation
-    try:
-        expr = sp.sympify(edited_expr)
-
-        st.success("✅ Valid expression")
-        st.write("Detected function:", edited_expr)
-        st.latex(sp.latex(expr))
-
-    except:
-        st.error("❌ Invalid expression")
-        st.stop()
-
-# -----------------------
-# 📊 Graph Section
-# -----------------------
-try:
-    x = sp.symbols('x')
-    expr = sp.sympify(st.session_state.expr_text)
-
-    f = sp.lambdify(x, expr, "numpy")
-
-    x_vals = np.linspace(-5, 5, 400)
-
-    y_vals = []
-    for val in x_vals:
-        try:
-            y = f(val)
-            if np.isfinite(y):
-                y_vals.append(y)
-            else:
-                y_vals.append(np.nan)
-        except:
-            y_vals.append(np.nan)
-
-    y_vals = np.array(y_vals)
-
-    fig, ax = plt.subplots()
-    ax.plot(x_vals, y_vals)
-
-    ax.grid(True)
-    st.pyplot(fig)
-
-except Exception as e:
-    st.error(f"Graph error: {e}")
-
-    fig, ax = plt.subplots()
-    ax.plot(x_vals, y_vals)
-
-    # ROOTS
-    roots = sp.solve(expr, x)
-    for r in roots:
-        if r.is_real:
-            ax.scatter(float(r), 0)
-            st.write("Root:", r)
-
-    # TURNING POINTS
-    derivative = sp.diff(expr, x)
-    critical_points = sp.solve(derivative, x)
-
-    for cp in critical_points:
-        if cp.is_real:
-            y_val = expr.subs(x, cp)
-            ax.scatter(float(cp), float(y_val))
-            st.write(f"Turning point: ({cp}, {y_val})")
-
-    ax.set_title("Graph of the Function")
-    ax.grid(True)
-
-    # ✅ EVERYTHING BELOW MUST BE INSIDE TRY
-    st.pyplot(fig)
-
-    st.markdown("### 🧩 Step-by-Step Solution")
-
-    equation = sp.Eq(expr, 0)
-    solutions = sp.solve(equation, x)
-
-    st.markdown("**Step 1 → Form the equation**")
-    st.latex(f"{sp.latex(expr)} = 0")
-
-    if sp.degree(expr) == 2:
-        st.markdown("**Step 2 → Recognise quadratic**")
-        factored = sp.factor(expr)
-        st.markdown("**Step 3 → Factorise**")
-        st.latex(f"{sp.latex(factored)} = 0")
-
-    st.markdown("**Step 4 → Solve**")
-    for sol in solutions:
-        if sol.is_real:
-            st.latex(f"x = {sp.latex(sol)}")
-
-    st.markdown("### ✅ Final Answer")
-    for sol in solutions:
-        if sol.is_real:
-            st.latex(f"x = {sp.latex(sol)}")
-
-# ✅ THIS MUST EXIST
-except Exception as e:
-    st.error(f"Graph error: {e}")
-
-# -----------------------
-# Identify Topic
-# -----------------------
-if st.button("🔎 Identify Topic"):
-
-    response = client.responses.create(
-        model="gpt-4.1",
-        input=f"""
-Identify the math topic only.
-
-Output format:
-Chapter → Topic
-
-Do NOT solve.
-
-Student mnemonics:
-{st.session_state.mnemonics}
-
-Problem:
-{user_input}
-"""
-    )
-
-    st.write(response.output_text)
-
-# -----------------------
-# Hint System
-# -----------------------
-st.markdown("---")
-st.subheader("🧠 Guided Hint System")
-
-# HINT 1
-if st.session_state.hint_level == 0:
-
-    if st.button("💡 Reveal Hint 1"):
-
-        response = client.responses.create(
-            model="gpt-4.1",
-            input=f"""
-You are a Malaysian SPM / Matriculation math tutor.
-
-Give Hint 1 (concept hint).
-
-Rules
-• No solution
-• No final answer
-• Short clue only
-• Match difficulty: {difficulty}
-
-Student mnemonics:
-{st.session_state.mnemonics}
-
-Problem:
-{user_input}
-""",
-            max_output_tokens=100
+    Example:
+    x^2 + 2x + 1 → x**2 + 2*x + 1
+    """
+                },
+                    {
+                        "type":"input_image",
+                        "image_url":f"data:image/jpeg;base64,{encoded_image}"
+                    }
+                ]
+            }]
         )
 
-        st.session_state.hint1 = response.output_text
-        st.session_state.hint_level = 1
-        st.rerun()
+        user_input = response.output_text
+        st.info("📷 Problem extracted from image.")
 
-if st.session_state.hint_level >= 1:
-    st.write("### Hint 1")
-    st.write(st.session_state.hint1)
+    # -----------------------
+    # Reset hints if new problem
+    # -----------------------
+    if user_input != st.session_state.current_problem:
 
-# Understanding check
-understanding = st.radio(
-    "Did this hint help?",
-    ["Yes", "Not sure", "Still confused"]
-)
-
-# HINT 2
-if st.session_state.hint_level == 1:
-
-    if st.button("💡 Reveal Hint 2"):
-
-        if understanding == "Still confused":
-            instruction = "Explain more simply."
-        elif understanding == "Not sure":
-            instruction = "Clarify with a small clue."
-        else:
-            instruction = "Give a strategic hint."
-
-        response = client.responses.create(
-            model="gpt-4.1",
-            input=f"""
-Give Hint 2.
-
-Rules
-• 2 sentences max
-• No solution
-• No answer
-
-{instruction}
-
-Student mnemonics:
-{st.session_state.mnemonics}
-
-Problem:
-{user_input}
-""",
-            max_output_tokens=80
-        )
-
-        st.session_state.hint2 = response.output_text
-        st.session_state.hint_level = 2
-        st.rerun()
-
-if st.session_state.hint_level >= 2:
-    st.write("### Hint 2")
-    st.write(st.session_state.hint2)
-
-# HINT 3
-if st.session_state.hint_level == 2:
-
-    if st.button("💡 Reveal Hint 3"):
-
-        response = client.responses.create(
-            model="gpt-4.1",
-            input=f"""
-Give final directional hint.
-
-No answer.
-
-Student mnemonics:
-{st.session_state.mnemonics}
-
-Problem:
-{user_input}
-""",
-            max_output_tokens=80
-        )
-
-        st.session_state.hint3 = response.output_text
-        st.session_state.hint_level = 3
-        st.rerun()
-
-if st.session_state.hint_level >= 3:
-    st.write("### Hint 3")
-    st.write(st.session_state.hint3)
-
-# -----------------------
-# Show Answer
-# -----------------------
-if st.session_state.hint_level >= 3:
-
-    if st.button("📘 Show Answer (0 points)"):
-
-        response = client.responses.create(
-            model="gpt-4.1",
-            input=f"""
-Give full worked solution using Malaysian method.
-
-Show steps clearly.
-
-Student mnemonics:
-{st.session_state.mnemonics}
-
-Problem:
-{user_input}
-""",
-    max_output_tokens=900
-        )
-
-        st.session_state.answer = response.output_text
-        st.session_state.hint_level = 4
-        st.rerun()
-
-if st.session_state.hint_level >= 4:
-    with st.container():
-        st.markdown("### ✅ Full Answer")
-        st.write(st.session_state.answer)
-
-# -----------------------
-# Solved Button
-# -----------------------
-if 0 < st.session_state.hint_level < 4:
-
-    if st.button("✅ I Solved It"):
-
-        if st.session_state.hint_level == 1:
-            st.session_state.score += 3
-        elif st.session_state.hint_level == 2:
-            st.session_state.score += 2
-        else:
-            st.session_state.score += 1
-
-        st.success(f"Score: {st.session_state.score}")
-
+        st.session_state.current_problem = user_input
         st.session_state.hint_level = 0
-        st.rerun()
+        st.session_state.answer = ""
+
+    if not user_input:
+        st.info("Enter a problem to start.")
+    else:
+        st.success("Problem detected")
+
+        # -----------------------
+        # Student Attempt Section
+        # -----------------------
+
+        st.markdown("### ✏️ Try Solving")
+
+        student_answer = st.text_input(
+            "Enter your answer:",
+            placeholder="Example: x = 4"
+        )
+
+        if st.button("Check My Answer"):
+            response = client.responses.create(
+                model="gpt-4.1",
+                input=f"""
+    Check if the student's answer is correct.
+
+    Rules:
+    - Only say "Correct ✅" or "Incorrect ❌"
+    - If incorrect, give a very small hint.
+    - Do NOT show full solution.
+
+    Problem:
+    {user_input}
+
+    Student Answer:
+    {student_answer}
+    """
+            )
+
+            st.write(response.output_text)
+
+        # -----------------------
+        # Generate Graph Button
+        # -----------------------
+        if st.button("📊 Generate Graph"):
+
+            response = client.responses.create(
+                model="gpt-4.1",
+                input=f"""Convert into valid SymPy expression only.
+
+    Problem:
+    {user_input}
+    """
+            )
+
+            expr_text = response.output_text.strip()
+            expr_text = expr_text.replace("^", "**")
+            expr_text = expr_text.replace(" ", "")
+
+            st.session_state.expr_text = expr_text
+
+    # -----------------------
+    # 📊 Graph Section
+    # -----------------------
+
+    if not st.session_state.expr_text:
+        st.info("Click 'Generate Graph' first.")
+
+    if st.session_state.expr_text:
+
+        try:
+            x = sp.symbols('x')
+
+            expr_raw = sp.sympify(st.session_state.expr_text)
+
+            # 🔥 FIX: handle equation vs function
+            if isinstance(expr_raw, sp.Equality):
+                expr = expr_raw.lhs - expr_raw.rhs
+            else:
+                expr = expr_raw
+
+            # 🔥 SAFETY: must depend on x
+            if not expr.has(x):
+                st.error("Expression must contain variable x")
+                st.stop()
+
+            f = sp.lambdify(x, expr, "numpy")
+
+            x_vals = np.linspace(-10, 10, 400)
+            y_vals = np.array([
+                f(val) if np.isfinite(f(val)) else np.nan
+                for val in x_vals
+            ])
+
+            fig, ax = plt.subplots()
+            ax.plot(x_vals, y_vals)
+            ax.axhline(0)
+            ax.axvline(0)
+            ax.grid(True)
+
+            st.pyplot(fig)
+
+            # -----------------------
+            # METHOD DETECTION
+            # -----------------------
+
+            st.markdown("### 🧩 Step-by-Step Solution")
+
+            if "newton" in user_input.lower() or "raphson" in user_input.lower():
+
+                st.markdown("### 🧩 Newton-Raphson Method")
+
+                f_prime = sp.diff(expr, x)
+
+                x0 = 3  # better start
+
+                for i in range(5):
+                    x1 = x0 - (f.subs(x, x0) / f_prime.subs(x, x0))
+                    st.write(f"Iteration {i}: x = {float(x0):.5f}")
+                    x0 = x1
+
+                st.write(f"Final ≈ {float(x0):.5f}")
+
+            else:
+                solutions = sp.solve(expr, x)
+
+                st.latex(sp.latex(sp.Eq(expr, 0)))
+
+                for sol in solutions:
+                    if sol.is_real:
+                        st.latex(f"x = {sp.latex(sol)}")
+
+        except Exception as e:
+            st.error(f"Graph error: {e}")
+
+    # -----------------------
+    # Identify Topic
+    # -----------------------
+    if st.button("🔎 Identify Topic"):
+
+        response = client.responses.create(
+            model="gpt-4.1",
+            input=f"""
+    Identify the math topic only.
+
+    Output format:
+    Chapter → Topic
+
+    Do NOT solve.
+
+    Student mnemonics:
+    {st.session_state.mnemonics}
+
+    Problem:
+    {user_input}
+    """
+        )
+
+        st.write(response.output_text)
+
+    # -----------------------
+    # Hint System
+    # -----------------------
+    st.markdown("---")
+    st.subheader("🧠 Guided Hint System")
+
+    # HINT 1
+    if st.session_state.hint_level == 0:
+
+        if st.button("💡 Reveal Hint 1"):
+
+            response = client.responses.create(
+        model="gpt-4.1",
+        input=f"""
+    You are a Malaysian SPM / Matriculation math tutor.
+
+    Give Hint 1 (concept hint ONLY).
+
+    Rules:
+    • State the concept or method needed
+    • Do NOT show steps
+    • Do NOT show formulas in full
+    • Do NOT solve anything
+    • Max 1–2 sentences
+
+    Problem:
+    {user_input}
+    """,
+        max_output_tokens=80
+    )
+            st.session_state.hint1 = response.output_text
+            st.session_state.hint_level = 1
+            st.rerun()
+
+    if st.session_state.hint_level >= 1:
+        st.write("### Hint 1")
+        st.write(st.session_state.hint1)
+
+    # Understanding check
+    understanding = st.radio(
+        "Did this hint help?",
+        ["Yes", "Not sure", "Still confused"]
+    )
+
+    # HINT 2
+    if st.session_state.hint_level == 1:
+
+        if st.button("💡 Reveal Hint 2"):
+
+            # 🔥 ADAPT BASED ON STUDENT FEEDBACK
+            if understanding == "Still confused":
+                instruction = """
+    Explain more clearly using very simple words.
+    Break it into smaller steps.
+    """
+
+            elif understanding == "Not sure":
+                instruction = """
+    Clarify the idea and give a slightly stronger hint.
+    """
+
+            else:
+                instruction = """
+    Give a minimal strategic hint only.
+    """
+
+            response = client.responses.create(
+        model="gpt-4.1",
+        input=f"""
+    You are a Malaysian SPM / Matriculation math tutor.
+
+    Give Hint 2 (direction hint).
+
+    {instruction}
+
+    Difficulty: {difficulty}
+
+    Rules:
+    • Tell the student what to do next
+    • You may mention formulas briefly (no full expansion)
+    • Do NOT calculate
+    • Do NOT substitute values
+    • Max 2–3 sentences
+
+    Problem:
+    {user_input}
+    """,
+        max_output_tokens=150
+    )
+
+            st.session_state.hint2 = response.output_text
+            st.session_state.hint_level = 2
+            st.rerun()
+
+    if st.session_state.hint_level >= 2:
+        st.write("### Hint 2")
+        st.write(st.session_state.hint2)
+
+    # HINT 3
+    # HINT 3
+    if st.session_state.hint_level == 2:
+
+        if st.button("💡 Reveal Hint 3"):
+
+            # 🔥 ADAPT BASED ON UNDERSTANDING
+            if understanding == "Still confused":
+                instruction = """
+    Guide step-by-step clearly.
+    Show the method.
+    You may show intermediate steps, but DO NOT reveal final answer.
+    """
+
+            elif understanding == "Not sure":
+                instruction = """
+    Give structured steps to solve.
+    Show method but stop before final answer.
+    """
+
+            else:
+                instruction = """
+    Give a strong strategic push.
+    Outline steps briefly without solving.
+    """
+
+            response = client.responses.create(
+        model="gpt-4.1",
+        input=f"""
+    You are a Malaysian SPM / Matriculation math tutor.
+
+    Give Hint 3 (final guidance before solving).
+
+    {instruction}
+
+    Difficulty: {difficulty}
+
+    Rules:
+    • Outline the steps clearly
+    • Do NOT perform calculations
+    • Do NOT substitute numbers
+    • Do NOT give final answer
+    • Max 3–4 short steps
+
+    Example style:
+    Step 1: Define the function  
+    Step 2: Differentiate it  
+    Step 3: Apply the method  
+
+    Problem:
+    {user_input}
+    """,
+        max_output_tokens=250
+    )
+
+            st.session_state.hint3 = response.output_text
+            st.session_state.hint_level = 3
+            st.rerun()
+
+    if st.session_state.hint_level >= 3:
+        st.write("### Hint 3")
+        st.write(st.session_state.hint3)
+
+    # -----------------------
+    # Show Answer
+    # -----------------------
+    if st.session_state.hint_level >= 3:
+
+        if st.button("📘 Show Answer (0 points)"):
+
+            response = client.responses.create(
+        model="gpt-4.1",
+        input=f"""
+    Solve using the correct method.
+
+    RULES:
+    - Use LaTeX (wrap equations in $$)
+    - No code formatting
+    - Max 5 steps only
+    - Be concise
+
+    If Newton-Raphson:
+    - Show formula
+    - Show 3 iterations
+    - Give final answer
+
+    Problem:
+    {user_input}
+    """,
+        max_output_tokens=1000
+    )
+
+            st.session_state.answer = response.output_text
+            st.session_state.hint_level = 4
+            st.rerun()
+
+    if st.session_state.hint_level >= 4:
+        with st.container():
+            st.markdown("### ✅ Full Answer")
+            st.write(st.session_state.answer)
+
+    # -----------------------
+    # Solved Button
+    # -----------------------
+    if 0 < st.session_state.hint_level < 4:
+
+        if st.button("✅ I Solved It"):
+
+            if st.session_state.hint_level == 1:
+                st.session_state.score += 3
+            elif st.session_state.hint_level == 2:
+                st.session_state.score += 2
+            else:
+                st.session_state.score += 1
+
+            st.success(f"Score: {st.session_state.score}")
+
+            st.session_state.hint_level = 0
+            st.rerun()
+        # (input, hints, graph, difficulty, etc.)
+
+    # =========================
+    # 📖 NOTES TAB
+    # =========================
+    with tab_notes:
+
+        st.markdown("## 📚 Mathematics Notes")
+
+        sem1_tab, sem2_tab = st.tabs(["📘 Semester 1", "📗 Semester 2"])
+
+        # =========================
+        # SEMESTER 1
+        # =========================
+        with sem1_tab:
+
+            chapter = st.selectbox(
+                "Choose Chapter",
+                [
+                    "Chapter 1: Number System",
+                    "Chapter 2: Equations, Inequalities and Absolute Values",
+                    "Chapter 3: Sequences and Series",
+                    "Chapter 4: Matrices",
+                    "Chapter 5: Functions",
+                    "Chapter 6: Polynomials",
+                    "Chapter 7: Trigonometry",
+                    "Chapter 8: Limits and Continuity",
+                    "Chapter 9: Differentiation",
+                    "Chapter 10: Application of Differentiation"
+                ]
+            )
+
+            st.markdown(f"### {chapter}")
+
+            # TEMP CONTENT (you replace later)
+            st.info("Notes will appear here")
+
+        # =========================
+        # SEMESTER 2
+        # =========================
+        # =========================
+# SEMESTER 2
+# =========================
+        with sem2_tab:
+
+            chapter = st.selectbox(
+                "Choose Chapter",
+                [
+                    "Chapter 1: Numerical Solution",
+                    "Chapter 2: Integration",
+                    "Chapter 3: First Order Differential Equation",
+                    "Chapter 4: Conics",
+                    "Chapter 5: Vectors",
+                    "Chapter 6: Data Description",
+                    "Chapter 7: Probability",
+                    "Chapter 8: Random Variables",
+                    "Chapter 9: Special Probability Distribution"
+                ]
+            )
+
+            # ✅ Only show when selected
+            if chapter == "Chapter 1: Numerical Solution":
+
+                st.markdown("## 📘 Chapter 1: Numerical Solutions")
+
+                # =========================
+                # 1.1 SECTION
+                # =========================
+                with st.expander("📊 1.1 Numerical Solution of Equations", expanded=True):
+
+                    st.markdown("### 📌 Learning Outcome")
+                    st.info("Locate approximately a root of an equation using graphical or algebraic methods.")
+
+                    st.markdown("""
+        Many equations **cannot be solved exactly**, so we use **numerical methods** to find approximate solutions.
+
+        ### 🧠 Key Idea
+        There are two main steps:
+        1. Find an **initial approximate value**
+        2. Improve it using an **iterative process**
+        """)
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown("### 📊 Graphical Method")
+                        st.markdown("""
+        - Sketch the graph of **y = f(x)**
+        - Root = where graph cuts x-axis
+        """)
+
+                    with col2:
+                        st.markdown("### 🔢 Algebraic Method")
+                        st.markdown("""
+        - Choose a and b
+        - f(a), f(b) opposite signs
+        → root exists between them
+        """)
+
+                # =========================
+                # 1.2 SECTION
+                # =========================
+                with st.expander("🧩 1.2 Newton-Raphson Method"):
+
+                    st.markdown("### 📌 Learning Outcome")
+                    st.info("Find the root using Newton-Raphson Method")
+
+                    st.latex(r"x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}")
+
+                    st.markdown("""
+        Steps:
+        1. Find f(x), f'(x)
+        2. Choose x₀
+        3. Iterate until accurate
+        """)
+
+    # =========================
+    # 📊 VISUAL TAB
+    # =========================
+    with tab_visual:
+        st.write("Graphs / visual tools here")
+
+    # =========================
+    # 🏆 PROGRESS TAB
+    # =========================
+    with tab_progress:
+        st.write("Score, analytics here")
