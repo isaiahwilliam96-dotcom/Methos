@@ -1,4 +1,4 @@
-mport streamlit as st
+import streamlit as st
 from openai import OpenAI
 import os
 import matplotlib.pyplot as plt
