@@ -7,10 +7,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sympy as sp
 import streamlit.components.v1 as components
+import random
+
+quotes = [
+    "Mathematics is not about numbers, it's about thinking.",
+    "Struggle in math today builds clarity tomorrow.",
+    "Do not memorise. Understand.",
+    "Every problem you solve rewires your brain.",
+    "Mistakes mean you are learning.",
+    "Mathematics rewards patience, not speed.",
+    "Think deeply, not quickly.",
+    "Confusion is the beginning of understanding.",
+    "Small steps every day lead to big mastery.",
+    "You don't need talent, just persistence."
+]
 
 st.markdown("""
 <style>
 
+/* IMPORT FONTS */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;600&display=swap');
+
+/* GLOBAL FONT */
+html, body, [class*="css"] {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* BACKGROUND */
 .stApp {
     background: linear-gradient(-45deg,#0f172a,#1e293b,#334155,#0f172a);
     background-size:400% 400%;
@@ -24,6 +47,7 @@ st.markdown("""
 100% {background-position:0% 50%;}
 }
 
+/* FLOATING SYMBOLS */
 .math-symbol {
     position:fixed;
     color:rgba(255,255,255,0.08);
@@ -37,9 +61,7 @@ st.markdown("""
 100% {transform:translateY(-10vh) rotate(360deg);}
 }
 
-
-/* -------- TEXT ANIMATION -------- */
-
+/* TEXT ANIMATION */
 @keyframes fadeSlide {
 0% {opacity:0; transform:translateY(20px);}
 100% {opacity:1; transform:translateY(0);}
@@ -51,23 +73,30 @@ st.markdown("""
 100% {text-shadow:0 0 5px #a5b4fc;}
 }
 
+/* TITLE */
 .animated-title {
-font-size:42px;
-font-weight:700;
-animation:fadeSlide 1.2s ease-out, glow 3s ease-in-out infinite;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size:42px;
+    font-weight:700;
+    letter-spacing:2px;
+    animation:fadeSlide 1.2s ease-out, glow 3s ease-in-out infinite;
 }
 
+/* SUBTITLE */
 .animated-subtitle {
-font-size:18px;
-animation:fadeSlide 1.5s ease forwards;
+    font-size:18px;
+    animation:fadeSlide 1.5s ease forwards;
 }
 
+/* SECTION */
 .animated-section {
-animation:fadeSlide 1s ease-out;
+    animation:fadeSlide 1s ease-out;
 }
 
 </style>
+""", unsafe_allow_html=True)
 
+st.markdown("""
 <div class="math-symbol" style="left:5%;">π</div>
 <div class="math-symbol" style="left:15%;animation-delay:3s;">∑</div>
 <div class="math-symbol" style="left:25%;animation-delay:7s;">∫</div>
@@ -77,7 +106,6 @@ animation:fadeSlide 1s ease-out;
 <div class="math-symbol" style="left:65%;animation-delay:4s;">θ</div>
 <div class="math-symbol" style="left:75%;animation-delay:6s;">λ</div>
 <div class="math-symbol" style="left:85%;animation-delay:1s;">∞</div>
-
 """, unsafe_allow_html=True)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -205,6 +233,7 @@ section[data-testid="stSidebar"] {
 # Title
 # -----------------------
 st.markdown('<div class="animated-title">Mathos 🧠</div>', unsafe_allow_html=True)
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -212,6 +241,20 @@ with col1:
 
 with col2:
     st.write(f"Hint Level: {st.session_state.hint_level}")
+
+# ✅ Put warning AFTER columns (correct placement)
+st.warning("""
+⚠️ AI is not always perfect.
+
+Always verify solutions and avoid relying fully on it.
+Use this as a guide, not a replacement for your own thinking.
+""")
+
+if "quote" not in st.session_state:
+    st.session_state.quote = random.choice(quotes)
+
+st.success(f"“{st.session_state.quote}”")
+
 st.progress(min(st.session_state.score / 10, 1.0))
 st.markdown("### Adaptive AI Scaffolding for Matriculation Mathematics")
 
@@ -453,6 +496,10 @@ with tab_practice:
     • Do NOT calculate
     • Do NOT substitute values
     • Max 2–3 sentences
+    • Do NOT write code or programming style
+    • Do NOT use _ , ** , or Python-like expressions
+    • ALL formulas must be written in LaTeX using $$ $$ 
+    • Explain in words like a teacher
 
     Problem:
     {user_input}
@@ -468,7 +515,6 @@ with tab_practice:
         st.write("### Hint 2")
         st.write(st.session_state.hint2)
 
-    # HINT 3
     # HINT 3
     if st.session_state.hint_level == 2:
 
@@ -505,12 +551,11 @@ with tab_practice:
 
     Difficulty: {difficulty}
 
-    Rules:
-    • Outline the steps clearly
-    • Do NOT perform calculations
-    • Do NOT substitute numbers
-    • Do NOT give final answer
-    • Max 3–4 short steps
+    STRICT RULES:
+    • Do NOT write code or programming style
+    • Do NOT use _ , ** , or Python-like expressions
+    • ALL formulas must be written in LaTeX using $$ $$ 
+    • Explain in words like a teacher
 
     Example style:
     Step 1: Define the function  
@@ -548,11 +593,6 @@ with tab_practice:
     - No code formatting
     - Max 5 steps only
     - Be concise
-
-    If Newton-Raphson:
-    - Show formula
-    - Show 3 iterations
-    - Give final answer
 
     Problem:
     {user_input}
