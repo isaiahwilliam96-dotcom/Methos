@@ -1222,276 +1222,297 @@ with tab_practice:
                 st.markdown("### 🌀 Polar Form")
                 st.latex(rf"z = {r:.2f}(\cos({theta:.2f}) + i\sin({theta:.2f}))")
 
-            st.markdown("### 📊 Probability Distributions")
-
-            dist = st.selectbox(
-            "Choose Distribution",
-            ["Binomial", "Poisson", "Standard Normal"],
-            key="dist_select_visual"
-            )
-
             # =========================
-            # BINOMIAL
+            # PROBABILITY DISTRIBUTION
             # =========================
-            if dist == "Binomial":
+            elif topic == "Probability Distribution":
 
-                n = st.slider("Number of trials (n)", 1, 50, 10)
-                p = st.slider("Probability of success (p)", 0.0, 1.0, 0.5)
+                st.markdown("### 📊 Probability Distributions")
 
-                x_vals = np.arange(0, n+1)
-
-                def binomial_pmf(x, n, p):
-                    return math.comb(n, x) * (p**x) * ((1-p)**(n-x))
-
-                y_vals = [binomial_pmf(x, n, p) for x in x_vals]
-
-                fig = go.Figure()
-
-                fig.add_trace(go.Bar(
-                    x=x_vals,
-                    y=y_vals,
-                    name="P(X = x)"
-                ))
-
-                fig.update_layout(title="Binomial Distribution")
-
-                st.plotly_chart(fig, use_container_width=True)
-
-            # =========================
-            # POISSON
-            # =========================
-            elif dist == "Poisson":
-
-                lam = st.slider("Lambda (λ)", 0.1, 10.0, 3.0)
-
-                x_vals = np.arange(0, 20)
-
-                def poisson_pmf(x, lam):
-                    return (lam**x * math.exp(-lam)) / math.factorial(x)
-
-                y_vals = [poisson_pmf(x, lam) for x in x_vals]
-
-                fig = go.Figure()
-
-                fig.add_trace(go.Bar(
-                    x=x_vals,
-                    y=y_vals
-                ))
-
-                fig.update_layout(title="Poisson Distribution")
-
-                st.plotly_chart(fig, use_container_width=True)
-
-            # =========================
-            # STANDARD NORMAL
-            # =========================
-            elif dist == "Standard Normal":
-
-                st.markdown("### 📊 Standard Normal Distribution")
-
-                mode = st.selectbox(
-                    "Choose Mode",
-                    ["Z given", "X → Z conversion"]
+                dist = st.selectbox(
+                    "Choose Distribution",
+                    ["Binomial", "Poisson", "Standard Normal"],
+                    key="dist_select_visual"
                 )
 
-                prob_type = st.selectbox(
-                    "Select Probability",
-                    ["P(Z < a)", "P(Z > a)", "P(a < Z < b)"]
-                )
-
-                x_vals = np.linspace(-4, 4, 1000)
-
-                def normal_pdf(x):
-                    return (1 / np.sqrt(2*np.pi)) * np.exp(-0.5 * x**2)
-
-                y_vals = normal_pdf(x_vals)
-
-                fig = go.Figure()
-
-                fig.add_trace(go.Scatter(
-                    x=x_vals,
-                    y=y_vals,
-                    mode='lines',
-                    name='PDF'
-                ))
-
                 # =========================
-                # MODE 1: Z GIVEN
+                # BINOMIAL
                 # =========================
-                if mode == "Z given":
+                if dist == "Binomial":
 
-                    if prob_type == "P(Z < a)":
+                    n = st.slider("Number of trials (n)", 1, 50, 10)
+                    p = st.slider("Probability of success (p)", 0.0, 1.0, 0.5)
 
-                        a = st.slider("Z value", -3.0, 3.0, 1.0)
+                    x_vals = np.arange(0, n+1)
 
-                        mask = x_vals <= a
+                    def binomial_pmf(x, n, p):
+                        return math.comb(n, x) * (p**x) * ((1-p)**(n-x))
 
-                        prob = 0.5 * (1 + math.erf(a / np.sqrt(2)))
+                    y_vals = [binomial_pmf(x, n, p) for x in x_vals]
 
-                    elif prob_type == "P(Z > a)":
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(x=x_vals, y=y_vals))
+                    st.plotly_chart(fig, use_container_width=True)
 
-                        a = st.slider("Z value", -3.0, 3.0, 2.0)
+                    # 🎯 Probability
+                    st.markdown("### 🎯 Calculate Probability")
 
-                        mask = x_vals >= a
+                    prob_type = st.selectbox(
+                        "Select Type",
+                        ["P(X = x)", "P(X < a)", "P(X > a)", "P(a < X < b)"],
+                        key="binomial_prob"
+                    )
 
-                        prob = 1 - (0.5 * (1 + math.erf(a / np.sqrt(2))))
+                    if prob_type == "P(X = x)":
+                        x_val = st.slider("x", 0, n, 3)
+                        prob = binomial_pmf(x_val, n, p)
+
+                    elif prob_type == "P(X < a)":
+                        a = st.slider("a", 0, n, 3)
+                        prob = sum(binomial_pmf(x, n, p) for x in range(a))
+
+                    elif prob_type == "P(X > a)":
+                        a = st.slider("a", 0, n, 3)
+                        prob = sum(binomial_pmf(x, n, p) for x in range(a+1, n+1))
 
                     else:
-
-                        a = st.slider("a", -3.0, 3.0, -1.0)
-                        b = st.slider("b", -3.0, 3.0, 1.0)
+                        a = st.slider("a", 0, n-1, 2)
+                        b = st.slider("b", 1, n, 5)
 
                         if a >= b:
                             st.warning("Ensure a < b")
                             st.stop()
 
-                        mask = (x_vals >= a) & (x_vals <= b)
+                        prob = sum(binomial_pmf(x, n, p) for x in range(a+1, b))
 
-                        prob = (0.5 * (1 + math.erf(b / np.sqrt(2)))) - \
-                            (0.5 * (1 + math.erf(a / np.sqrt(2))))
+                    st.success(f"Probability ≈ {prob:.4f}")
 
                 # =========================
-                # MODE 2: X → Z CONVERSION
+                # POISSON
                 # =========================
-                else:
+                elif dist == "Poisson":
 
-                    mean = st.number_input("Mean (μ)", value=0.0)
-                    sd = st.number_input("Standard Deviation (σ)", value=1.0)
+                    lam = st.slider("Lambda (λ)", 0.1, 10.0, 3.0)
 
-                    st.markdown("### 🔄 Standardisation Formula")
+                    x_vals = np.arange(0, 20)
 
+                    def poisson_pmf(x, lam):
+                        return (lam**x * math.exp(-lam)) / math.factorial(x)
 
-                    if prob_type == "P(Z < a)":
+                    y_vals = [poisson_pmf(x, lam) for x in x_vals]
 
-                        x_val = st.number_input("Enter X value", value=1.0)
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(x=x_vals, y=y_vals))
+                    st.plotly_chart(fig, use_container_width=True)
 
-                        z = (x_val - mean) / sd
-                        st.write(f"Z = {z:.3f}")
+                    # 🎯 Probability
+                    st.markdown("### 🎯 Calculate Probability")
 
-                        mask = x_vals <= z
+                    prob_type = st.selectbox(
+                        "Select Type",
+                        ["P(X = x)", "P(X < a)", "P(X > a)", "P(a < X < b)"],
+                        key="poisson_prob"
+                    )
 
-                        prob = 0.5 * (1 + math.erf(z / np.sqrt(2)))
+                    if prob_type == "P(X = x)":
+                        x_val = st.slider("x", 0, 20, 3)
+                        prob = poisson_pmf(x_val, lam)
 
-                    elif prob_type == "P(Z > a)":
+                    elif prob_type == "P(X < a)":
+                        a = st.slider("a", 0, 20, 3)
+                        prob = sum(poisson_pmf(x, lam) for x in range(a))
 
-                        x_val = st.number_input("Enter X value", value=2.0)
-
-                        z = (x_val - mean) / sd
-                        st.write(f"Z = {z:.3f}")
-
-                        mask = x_vals >= z
-
-                        prob = 1 - (0.5 * (1 + math.erf(z / np.sqrt(2))))
+                    elif prob_type == "P(X > a)":
+                        a = st.slider("a", 0, 20, 3)
+                        prob = sum(poisson_pmf(x, lam) for x in range(a+1, 20))
 
                     else:
+                        a = st.slider("a", 0, 19, 2)
+                        b = st.slider("b", 1, 20, 5)
 
-                        x1 = st.number_input("X1", value=-1.0)
-                        x2 = st.number_input("X2", value=1.0)
+                        if a >= b:
+                            st.warning("Ensure a < b")
+                            st.stop()
 
-                        z1 = (x1 - mean) / sd
-                        z2 = (x2 - mean) / sd
+                        prob = sum(poisson_pmf(x, lam) for x in range(a+1, b))
 
-                        st.write(f"Z1 = {z1:.3f}, Z2 = {z2:.3f}")
-
-                        mask = (x_vals >= z1) & (x_vals <= z2)
-
-                        prob = (0.5 * (1 + math.erf(z2 / np.sqrt(2)))) - \
-                            (0.5 * (1 + math.erf(z1 / np.sqrt(2))))
+                    st.success(f"Probability ≈ {prob:.4f}")
 
                 # =========================
-                # SHADED AREA
+                # STANDARD NORMAL
                 # =========================
-                fig.add_trace(go.Scatter(
-                    x=x_vals[mask],
-                    y=y_vals[mask],
-                    fill='tozeroy',
-                    mode='lines',
-                    name='Probability Area'
-                ))
+                elif dist == "Standard Normal":
 
-                fig.update_layout(title="Standard Normal Distribution")
+                    st.markdown("### 📊 Standard Normal Distribution")
 
-                st.plotly_chart(fig, use_container_width=True)
-
-                # =========================
-                # RESULT
-                # =========================
-                st.success(f"Probability ≈ {prob:.4f}")
-
-                # =========================
-                # Z-TABLE INSIGHT
-                # =========================
-                st.info("""
-                💡 Interpretation:
-                - This value represents the **area under the curve**
-                - Equivalent to values from the **Z-table**
-                - Graph helps you SEE what the table means
-                """)
-
-                st.markdown("## 📈 Normal Distribution Visualizer")
-
-                case = st.selectbox(
-                    "Select Probability Type",
-                    ["P(Z < a)", "P(Z > a)", "P(a < Z < b)"]
+                    mode = st.selectbox(
+                    "Choose Mode",
+                    ["Z given", "X → Z conversion"],
+                    key="mode_select"
                 )
 
-                # X values
-                x = np.linspace(-4, 4, 1000)
-                y = norm.pdf(x)
+                    prob_type = st.selectbox(
+                    "Select Probability",
+                    ["P(Z < a)", "P(Z > a)", "P(a < Z < b)"],
+                    key="prob_type_select"
+                )
 
-                fig = go.Figure()
+                    x_vals = np.linspace(-4, 4, 1000)
 
-                # Base curve
-                fig.add_trace(go.Scatter(
-                    x=x,
-                    y=y,
-                    mode='lines',
-                    name='Normal Curve'
-                ))
+                    def normal_pdf(x):
+                        return (1 / np.sqrt(2*np.pi)) * np.exp(-0.5 * x**2)
 
-                if case == "P(Z < a)":
+                    y_vals = normal_pdf(x_vals)
 
-                    a = st.slider("Select a", -3.0, 3.0, 1.0)
-
-                    mask = x <= a
-                    prob = norm.cdf(a)
+                    fig = go.Figure()
 
                     fig.add_trace(go.Scatter(
-                        x=x[mask],
-                        y=y[mask],
-                        fill='tozeroy',
+                        x=x_vals,
+                        y=y_vals,
                         mode='lines',
-                        name='Shaded Area'
+                        name='PDF'
                     ))
 
-                    st.success(f"P(Z < {a}) = {prob:.4f}")
+                    # =========================
+                    # MODE 1: Z GIVEN
+                    # =========================
+                    if mode == "Z given":
 
-                elif case == "P(Z > a)":
+                        if prob_type == "P(Z < a)":
 
-                    a = st.slider("Select a", -3.0, 3.0, 1.0)
+                            a = st.slider("Z value", -3.0, 3.0, 1.0)
 
-                    mask = x >= a
-                    prob = 1 - norm.cdf(a)
+                            mask = x_vals <= a
 
+                            prob = 0.5 * (1 + math.erf(a / np.sqrt(2)))
+
+                        elif prob_type == "P(Z > a)":
+
+                            a = st.slider("Z value", -3.0, 3.0, 2.0)
+
+                            mask = x_vals >= a
+
+                            prob = 1 - (0.5 * (1 + math.erf(a / np.sqrt(2))))
+
+                        else:
+
+                            a = st.slider("a", -3.0, 3.0, -1.0)
+                            b = st.slider("b", -3.0, 3.0, 1.0)
+
+                            if a >= b:
+                                st.warning("Ensure a < b")
+                                st.stop()
+
+                            mask = (x_vals >= a) & (x_vals <= b)
+
+                            prob = (0.5 * (1 + math.erf(b / np.sqrt(2)))) - \
+                                (0.5 * (1 + math.erf(a / np.sqrt(2))))
+
+                    # =========================
+                    # MODE 2: X → Z CONVERSION
+                    # =========================
+                    else:
+
+                        mean = st.number_input("Mean (μ)", value=0.0)
+                        sd = st.number_input("Standard Deviation (σ)", value=1.0)
+
+                        st.markdown("### 🔄 Standardisation Formula")
+
+
+                        if prob_type == "P(Z < a)":
+
+                            x_val = st.number_input("Enter X value", value=1.0)
+
+                            z = (x_val - mean) / sd
+                            st.write(f"Z = {z:.3f}")
+
+                            mask = x_vals <= z
+
+                            prob = 0.5 * (1 + math.erf(z / np.sqrt(2)))
+
+                        elif prob_type == "P(Z > a)":
+
+                            x_val = st.number_input("Enter X value", value=2.0)
+
+                            z = (x_val - mean) / sd
+                            st.write(f"Z = {z:.3f}")
+
+                            mask = x_vals >= z
+
+                            prob = 1 - (0.5 * (1 + math.erf(z / np.sqrt(2))))
+
+                        else:
+
+                            x1 = st.number_input("X1", value=-1.0)
+                            x2 = st.number_input("X2", value=1.0)
+
+                            z1 = (x1 - mean) / sd
+                            z2 = (x2 - mean) / sd
+
+                            st.write(f"Z1 = {z1:.3f}, Z2 = {z2:.3f}")
+
+                            mask = (x_vals >= z1) & (x_vals <= z2)
+
+                            prob = (0.5 * (1 + math.erf(z2 / np.sqrt(2)))) - \
+                                (0.5 * (1 + math.erf(z1 / np.sqrt(2))))
+
+                    # =========================
+                    # SHADED AREA
+                    # =========================
                     fig.add_trace(go.Scatter(
-                        x=x[mask],
-                        y=y[mask],
+                        x=x_vals[mask],
+                        y=y_vals[mask],
                         fill='tozeroy',
                         mode='lines',
-                        name='Shaded Area'
+                        name='Probability Area'
                     ))
 
-                    st.success(f"P(Z > {a}) = {prob:.4f}")
+                    fig.update_layout(title="Standard Normal Distribution")
 
-                elif case == "P(a < Z < b)":
+                    st.plotly_chart(fig, use_container_width=True)
 
-                    a = st.slider("Select a", -3.0, 3.0, -1.0)
-                    b = st.slider("Select b", -3.0, 3.0, 1.0)
+                    # =========================
+                    # RESULT
+                    # =========================
+                    st.success(f"Probability ≈ {prob:.4f}")
 
-                    if a < b:
+                    # =========================
+                    # Z-TABLE INSIGHT
+                    # =========================
+                    st.info("""
+                    💡 Interpretation:
+                    - This value represents the **area under the curve**
+                    - Equivalent to values from the **Z-table**
+                    - Graph helps you SEE what the table means
+                    """)
 
-                        mask = (x >= a) & (x <= b)
-                        prob = norm.cdf(b) - norm.cdf(a)
+                    st.markdown("## 📈 Normal Distribution Visualizer")
+
+                    case = st.selectbox(
+                        "Select Probability Type",
+                        ["P(Z < a)", "P(Z > a)", "P(a < Z < b)"]
+                    )
+
+                    # X values
+                    x = np.linspace(-4, 4, 1000)
+                    y = norm.pdf(x)
+
+                    fig = go.Figure()
+
+                    # Base curve
+                    fig.add_trace(go.Scatter(
+                        x=x,
+                        y=y,
+                        mode='lines',
+                        name='Normal Curve'
+                    ))
+
+                    if case == "P(Z < a)":
+
+                        a = st.slider("Select a", -3.0, 3.0, 1.0)
+
+                        mask = x <= a
+                        prob = norm.cdf(a)
 
                         fig.add_trace(go.Scatter(
                             x=x[mask],
@@ -1501,45 +1522,184 @@ with tab_practice:
                             name='Shaded Area'
                         ))
 
-                        st.success(f"P({a} < Z < {b}) = {prob:.4f}")
-                    else:
-                        st.error("Make sure a < b")
+                        st.success(f"P(Z < {a}) = {prob:.4f}")
 
-                frames = []
+                    elif case == "P(Z > a)":
 
-                for i in range(50):
-                    cutoff = -4 + i * (8 / 50)
-                    mask = x <= cutoff
+                        a = st.slider("Select a", -3.0, 3.0, 1.0)
 
-                    frames.append(go.Frame(
-                        data=[go.Scatter(
+                        mask = x >= a
+                        prob = 1 - norm.cdf(a)
+
+                        fig.add_trace(go.Scatter(
                             x=x[mask],
                             y=y[mask],
                             fill='tozeroy',
-                            mode='lines'
-                        )]
-                    ))
+                            mode='lines',
+                            name='Shaded Area'
+                        ))
 
-                fig.frames = frames
+                        st.success(f"P(Z > {a}) = {prob:.4f}")
 
-                fig.update_layout(
-                    title="Standard Normal Distribution",
-                    xaxis_title="Z",
-                    yaxis_title="Density",
-                    updatemenus=[{
-                        "type": "buttons",
-                        "buttons": [{
-                            "label": "▶ Animate",
-                            "method": "animate",
-                            "args": [None, {"frame": {"duration": 50}}]
+                    elif case == "P(a < Z < b)":
+
+                        a = st.slider("Select a", -3.0, 3.0, -1.0)
+                        b = st.slider("Select b", -3.0, 3.0, 1.0)
+
+                        if a < b:
+
+                            mask = (x >= a) & (x <= b)
+                            prob = norm.cdf(b) - norm.cdf(a)
+
+                            fig.add_trace(go.Scatter(
+                                x=x[mask],
+                                y=y[mask],
+                                fill='tozeroy',
+                                mode='lines',
+                                name='Shaded Area'
+                            ))
+
+                            st.success(f"P({a} < Z < {b}) = {prob:.4f}")
+                        else:
+                            st.error("Make sure a < b")
+
+                    frames = []
+
+                    for i in range(50):
+                        cutoff = -4 + i * (8 / 50)
+                        mask = x <= cutoff
+
+                        frames.append(go.Frame(
+                            data=[go.Scatter(
+                                x=x[mask],
+                                y=y[mask],
+                                fill='tozeroy',
+                                mode='lines'
+                            )]
+                        ))
+
+                    fig.frames = frames
+
+                    fig.update_layout(
+                        title="Standard Normal Distribution",
+                        xaxis_title="Z",
+                        yaxis_title="Density",
+                        updatemenus=[{
+                            "type": "buttons",
+                            "buttons": [{
+                                "label": "▶ Animate",
+                                "method": "animate",
+                                "args": [None, {"frame": {"duration": 50}}]
+                            }]
                         }]
-                    }]
-                )
+                    )
 
-                st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True)
 
     # =========================
     # 🏆 PROGRESS TAB
     # =========================
     with tab_progress:
-        st.write("Score, analytics here")
+
+        st.subheader("🏆 Your Learning Dashboard")
+
+        # =========================
+        # 📊 OVERALL PERFORMANCE
+        # =========================
+        st.markdown("### 📊 Overall Performance")
+
+        # Initialize session state if not exists
+        if "scores" not in st.session_state:
+            st.session_state.scores = {
+                "Functions": 80,
+                "Trigonometry": 60,
+                "Probability": 45,
+                "Differentiation": 70
+            }
+
+        if "attempts" not in st.session_state:
+            st.session_state.attempts = 12
+
+        if "streak" not in st.session_state:
+            st.session_state.streak = 5
+
+        scores = st.session_state.scores
+        attempts = st.session_state.attempts
+        streak = st.session_state.streak
+
+        avg_score = int(sum(scores.values()) / len(scores))
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("📈 Accuracy", f"{avg_score}%")
+
+        with col2:
+            st.metric("🧠 Questions Attempted", attempts)
+
+        with col3:
+            st.metric("🔥 Study Streak", f"{streak} days")
+
+        st.progress(avg_score / 100)
+
+        if avg_score < 50:
+            st.error("⚠️ You need more practice")
+        elif avg_score < 80:
+            st.warning("⚡ You're improving")
+        else:
+            st.success("🔥 Strong performance!")
+
+        # =========================
+        # 📚 TOPIC PERFORMANCE
+        # =========================
+        st.markdown("### 📚 Topic Performance")
+
+        for topic, score in scores.items():
+            st.write(f"**{topic}**")
+            st.progress(score / 100)
+
+        # =========================
+        # 🔴 WEAKNESS DETECTION
+        # =========================
+        st.markdown("### 🔍 Areas to Improve")
+
+        weak_topics = [t for t, s in scores.items() if s < 60]
+
+        if weak_topics:
+            for t in weak_topics:
+                st.error(f"🔴 {t}")
+        else:
+            st.success("✅ No major weak areas!")
+
+        # =========================
+        # 🤖 AI RECOMMENDATION
+        # =========================
+        st.markdown("### 🤖 AI Recommendations")
+
+        if not weak_topics:
+            st.info("You're doing well across all topics. Try harder questions.")
+
+        else:
+            for t in weak_topics:
+
+                if t == "Probability":
+                    st.info("📊 Practice Probability Distributions in Visualize tab")
+
+                elif t == "Trigonometry":
+                    st.info("📐 Revise trigonometric graphs and identities")
+
+                elif t == "Functions":
+                    st.info("📈 Focus on graph transformations")
+
+                elif t == "Differentiation":
+                    st.info("📉 Practice derivatives and applications")
+
+        # =========================
+        # 🎯 NEXT STEP GUIDE
+        # =========================
+        st.markdown("### 🎯 Suggested Next Step")
+
+        if weak_topics:
+            st.warning(f"Focus on **{weak_topics[0]}** next for best improvement.")
+        else:
+            st.success("Try mixed practice questions to maintain performance.")
