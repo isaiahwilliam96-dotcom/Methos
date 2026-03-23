@@ -9,6 +9,10 @@ import sympy as sp
 import streamlit.components.v1 as components
 import random
 import plotly.graph_objects as go
+import math
+import plotly.graph_objects as go
+from scipy.stats import norm
+import numpy as np
 
 quotes = [
     "Mathematics is not about numbers, it's about thinking.",
@@ -662,15 +666,158 @@ with tab_practice:
 
             st.markdown(f"### {chapter}")
 
-            # TEMP CONTENT (you replace later)
-            st.info("Notes will appear here")
+            # ✅ Only show when selected
+            if chapter == "Chapter 1: Number System":
+
+                st.markdown("## 📘 Chapter 1: Number System")
+
+                # =========================
+                # 1.1 REAL NUMBERS
+                # =========================
+                with st.expander("🔢 1.1 Real Numbers", expanded=True):
+
+                    st.markdown("### 📌 Learning Outcomes")
+                    st.info("""
+                    LO1: Define natural, whole, integer, rational and irrational numbers  
+                    LO2: Represent numbers in decimal form  
+                    LO3: Understand relationships between number sets  
+                    LO4: Represent intervals on number line  
+                    """)
+
+                    st.markdown("### 🧠 Types of Numbers")
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown("""
+            - **Natural Numbers (N)**: 1, 2, 3, ...
+            - **Whole Numbers (W)**: 0, 1, 2, ...
+            - **Integers (Z)**: ..., -2, -1, 0, 1, 2
+                        """)
+
+                    with col2:
+                        st.markdown("""
+            - **Rational Numbers (Q)**: Can be written as fraction  
+            - **Irrational Numbers**: Non-terminating, non-repeating  
+            - **Real Numbers (R)**: All rational + irrational
+                        """)
+
+                    st.markdown("### 📊 Relationship of Sets")
+
+                    st.info("""
+                    Natural ⊂ Whole ⊂ Integers ⊂ Rational ⊂ Real
+                    """)
+
+                # =========================
+                # 1.2 COMPLEX NUMBERS
+                # =========================
+                with st.expander("🧩 1.2 Complex Numbers"):
+
+                    st.markdown("### 📌 Learning Outcomes")
+                    st.info("""
+                    LO1: Represent complex numbers  
+                    LO2: Equality of complex numbers  
+                    LO3: Conjugate of complex numbers  
+                    LO4: Polar form  
+                    """)
+
+                    st.markdown("### 🔢 General Form")
+                    st.latex(r"z = a + bi")
+
+                    st.markdown("""
+            - **a** = real part  
+            - **b** = imaginary part  
+            - **i = √(-1)**  
+                    """)
+
+                    st.markdown("### ⚖️ Equality")
+
+                    st.latex(r"a + bi = c + di \Rightarrow a=c,\ b=d")
+
+                # =========================
+                # CONJUGATE
+                # =========================
+                with st.expander("🔄 Conjugate of Complex Numbers"):
+
+                    st.markdown("### 📌 Definition")
+
+                    st.latex(r"\overline{z} = a - bi")
+
+                    st.markdown("""
+            - Changes sign of imaginary part  
+            - Useful for division
+                    """)
+
+                    st.markdown("### ➕ Operations")
+
+                    st.latex(r"(a+bi)+(c+di) = (a+c) + (b+d)i")
+                    st.latex(r"(a+bi)-(c+di) = (a-c) + (b-d)i")
+                    st.latex(r"(a+bi)(c+di) = (ac - bd) + (ad + bc)i")
+
+                # =========================
+                # MODULUS & ARGUMENT
+                # =========================
+                with st.expander("📐 Modulus & Argand Diagram"):
+
+                    st.markdown("### 📏 Modulus")
+
+                    st.latex(r"|z| = \sqrt{a^2 + b^2}")
+
+                    st.markdown("### 📐 Argument (θ)")
+
+                    st.latex(r"\theta = \tan^{-1}\left(\frac{b}{a}\right)")
+
+                    st.warning("⚠️ Adjust θ based on quadrant!")
+
+                # =========================
+                # POLAR FORM
+                # =========================
+                with st.expander("🌀 Polar Form of Complex Numbers"):
+
+                    st.markdown("### 📌 Formula")
+
+                    st.latex(r"z = r(\cos \theta + i \sin \theta)")
+
+                    st.markdown("""
+            Where:
+            - r = modulus  
+            - θ = argument  
+                    """)
+
+                    st.markdown("### 🧠 Steps")
+
+                    st.markdown("""
+            1. Find modulus: r = √(a² + b²)  
+            2. Find argument θ  
+            3. Substitute into polar form  
+                    """)
+
+                # =========================
+                # NUMBER LINE & INTERVALS
+                # =========================
+                with st.expander("📏 Number Line & Intervals"):
+
+                    st.markdown("### 🔢 Inequalities")
+
+                    st.markdown("""
+            - a = b → equal  
+            - a < b → less than  
+            - a > b → greater than  
+            - a ≤ b → less than or equal  
+            - a ≥ b → greater than or equal  
+                    """)
+
+                    st.markdown("### 📦 Intervals")
+
+                    st.markdown("""
+            - (a, b) → open interval  
+            - [a, b] → closed interval  
+            - (a, b] or [a, b) → mixed  
+                    """)
 
         # =========================
         # SEMESTER 2
         # =========================
-        # =========================
-# SEMESTER 2
-# =========================
         with sem2_tab:
 
             chapter = st.selectbox(
@@ -892,15 +1039,17 @@ with tab_practice:
             st.subheader("📊 Visual Learning")
 
             topic = st.selectbox(
-                "Choose Topic to Visualize",
-                [
-                    "Functions",
-                    "3D Graph",
-                    "Trigonometry",
-                    "Differentiation",
-                    "Numerical Solution"
-                ]
-            )
+            "Choose Topic to Visualize",
+            [
+                "Functions",
+                "3D Graph",
+                "Trigonometry",
+                "Differentiation",
+                "Numerical Solution",
+                "Probability Distribution",
+                "Complex Numbers (Argand)"   # 👈 ADD THIS
+            ]
+        )
 
             st.caption("Use ** for powers (e.g. x**2)")
 
@@ -1014,6 +1163,380 @@ with tab_practice:
                         x1 = x0 - float(f.subs(x, x0)) / float(f_prime.subs(x, x0))
                         st.write(f"Iteration {i}: x = {x0:.5f}")
                         x0 = x1
+
+            # =========================
+            # COMPLEX NUMBERS (ARGAND)
+            # =========================
+            elif topic == "Complex Numbers (Argand)":
+
+                st.markdown("### 🧩 Argand Diagram Visualiser")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    real = st.slider("Real part (a)", -10.0, 10.0, 3.0)
+                with col2:
+                    imag = st.slider("Imaginary part (b)", -10.0, 10.0, 4.0)
+
+                # Modulus
+                r = np.sqrt(real**2 + imag**2)
+
+                st.latex(rf"|z| = \sqrt{{{real}^2 + {imag}^2}} = {r:.2f}")
+
+                # Argument
+                theta = np.arctan2(imag, real)
+                st.latex(rf"\theta = {theta:.2f} \text{{ rad}}")
+
+                # Plot Argand diagram
+                fig = go.Figure()
+
+                # Vector from origin
+                fig.add_trace(go.Scatter(
+                    x=[0, real],
+                    y=[0, imag],
+                    mode='lines+markers',
+                    name='z',
+                ))
+
+                # Point label
+                fig.add_trace(go.Scatter(
+                    x=[real],
+                    y=[imag],
+                    mode='text',
+                    text=[f"{real} + {imag}i"],
+                    textposition="top center"
+                ))
+
+                fig.update_layout(
+                    title="Argand Diagram",
+                    xaxis_title="Real Axis",
+                    yaxis_title="Imaginary Axis",
+                    xaxis=dict(range=[-10, 10]),
+                    yaxis=dict(range=[-10, 10]),
+                    showlegend=False
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Polar form
+                st.markdown("### 🌀 Polar Form")
+                st.latex(rf"z = {r:.2f}(\cos({theta:.2f}) + i\sin({theta:.2f}))")
+
+            st.markdown("### 📊 Probability Distributions")
+
+            dist = st.selectbox(
+            "Choose Distribution",
+            ["Binomial", "Poisson", "Standard Normal"],
+            key="dist_select_visual"
+            )
+
+            # =========================
+            # BINOMIAL
+            # =========================
+            if dist == "Binomial":
+
+                n = st.slider("Number of trials (n)", 1, 50, 10)
+                p = st.slider("Probability of success (p)", 0.0, 1.0, 0.5)
+
+                x_vals = np.arange(0, n+1)
+
+                def binomial_pmf(x, n, p):
+                    return math.comb(n, x) * (p**x) * ((1-p)**(n-x))
+
+                y_vals = [binomial_pmf(x, n, p) for x in x_vals]
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Bar(
+                    x=x_vals,
+                    y=y_vals,
+                    name="P(X = x)"
+                ))
+
+                fig.update_layout(title="Binomial Distribution")
+
+                st.plotly_chart(fig, use_container_width=True)
+
+            # =========================
+            # POISSON
+            # =========================
+            elif dist == "Poisson":
+
+                lam = st.slider("Lambda (λ)", 0.1, 10.0, 3.0)
+
+                x_vals = np.arange(0, 20)
+
+                def poisson_pmf(x, lam):
+                    return (lam**x * math.exp(-lam)) / math.factorial(x)
+
+                y_vals = [poisson_pmf(x, lam) for x in x_vals]
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Bar(
+                    x=x_vals,
+                    y=y_vals
+                ))
+
+                fig.update_layout(title="Poisson Distribution")
+
+                st.plotly_chart(fig, use_container_width=True)
+
+            # =========================
+            # STANDARD NORMAL
+            # =========================
+            elif dist == "Standard Normal":
+
+                st.markdown("### 📊 Standard Normal Distribution")
+
+                mode = st.selectbox(
+                    "Choose Mode",
+                    ["Z given", "X → Z conversion"]
+                )
+
+                prob_type = st.selectbox(
+                    "Select Probability",
+                    ["P(Z < a)", "P(Z > a)", "P(a < Z < b)"]
+                )
+
+                x_vals = np.linspace(-4, 4, 1000)
+
+                def normal_pdf(x):
+                    return (1 / np.sqrt(2*np.pi)) * np.exp(-0.5 * x**2)
+
+                y_vals = normal_pdf(x_vals)
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Scatter(
+                    x=x_vals,
+                    y=y_vals,
+                    mode='lines',
+                    name='PDF'
+                ))
+
+                # =========================
+                # MODE 1: Z GIVEN
+                # =========================
+                if mode == "Z given":
+
+                    if prob_type == "P(Z < a)":
+
+                        a = st.slider("Z value", -3.0, 3.0, 1.0)
+
+                        mask = x_vals <= a
+
+                        prob = 0.5 * (1 + math.erf(a / np.sqrt(2)))
+
+                    elif prob_type == "P(Z > a)":
+
+                        a = st.slider("Z value", -3.0, 3.0, 2.0)
+
+                        mask = x_vals >= a
+
+                        prob = 1 - (0.5 * (1 + math.erf(a / np.sqrt(2))))
+
+                    else:
+
+                        a = st.slider("a", -3.0, 3.0, -1.0)
+                        b = st.slider("b", -3.0, 3.0, 1.0)
+
+                        if a >= b:
+                            st.warning("Ensure a < b")
+                            st.stop()
+
+                        mask = (x_vals >= a) & (x_vals <= b)
+
+                        prob = (0.5 * (1 + math.erf(b / np.sqrt(2)))) - \
+                            (0.5 * (1 + math.erf(a / np.sqrt(2))))
+
+                # =========================
+                # MODE 2: X → Z CONVERSION
+                # =========================
+                else:
+
+                    mean = st.number_input("Mean (μ)", value=0.0)
+                    sd = st.number_input("Standard Deviation (σ)", value=1.0)
+
+                    st.markdown("### 🔄 Standardisation Formula")
+
+
+                    if prob_type == "P(Z < a)":
+
+                        x_val = st.number_input("Enter X value", value=1.0)
+
+                        z = (x_val - mean) / sd
+                        st.write(f"Z = {z:.3f}")
+
+                        mask = x_vals <= z
+
+                        prob = 0.5 * (1 + math.erf(z / np.sqrt(2)))
+
+                    elif prob_type == "P(Z > a)":
+
+                        x_val = st.number_input("Enter X value", value=2.0)
+
+                        z = (x_val - mean) / sd
+                        st.write(f"Z = {z:.3f}")
+
+                        mask = x_vals >= z
+
+                        prob = 1 - (0.5 * (1 + math.erf(z / np.sqrt(2))))
+
+                    else:
+
+                        x1 = st.number_input("X1", value=-1.0)
+                        x2 = st.number_input("X2", value=1.0)
+
+                        z1 = (x1 - mean) / sd
+                        z2 = (x2 - mean) / sd
+
+                        st.write(f"Z1 = {z1:.3f}, Z2 = {z2:.3f}")
+
+                        mask = (x_vals >= z1) & (x_vals <= z2)
+
+                        prob = (0.5 * (1 + math.erf(z2 / np.sqrt(2)))) - \
+                            (0.5 * (1 + math.erf(z1 / np.sqrt(2))))
+
+                # =========================
+                # SHADED AREA
+                # =========================
+                fig.add_trace(go.Scatter(
+                    x=x_vals[mask],
+                    y=y_vals[mask],
+                    fill='tozeroy',
+                    mode='lines',
+                    name='Probability Area'
+                ))
+
+                fig.update_layout(title="Standard Normal Distribution")
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                # =========================
+                # RESULT
+                # =========================
+                st.success(f"Probability ≈ {prob:.4f}")
+
+                # =========================
+                # Z-TABLE INSIGHT
+                # =========================
+                st.info("""
+                💡 Interpretation:
+                - This value represents the **area under the curve**
+                - Equivalent to values from the **Z-table**
+                - Graph helps you SEE what the table means
+                """)
+
+                st.markdown("## 📈 Normal Distribution Visualizer")
+
+                case = st.selectbox(
+                    "Select Probability Type",
+                    ["P(Z < a)", "P(Z > a)", "P(a < Z < b)"]
+                )
+
+                # X values
+                x = np.linspace(-4, 4, 1000)
+                y = norm.pdf(x)
+
+                fig = go.Figure()
+
+                # Base curve
+                fig.add_trace(go.Scatter(
+                    x=x,
+                    y=y,
+                    mode='lines',
+                    name='Normal Curve'
+                ))
+
+                if case == "P(Z < a)":
+
+                    a = st.slider("Select a", -3.0, 3.0, 1.0)
+
+                    mask = x <= a
+                    prob = norm.cdf(a)
+
+                    fig.add_trace(go.Scatter(
+                        x=x[mask],
+                        y=y[mask],
+                        fill='tozeroy',
+                        mode='lines',
+                        name='Shaded Area'
+                    ))
+
+                    st.success(f"P(Z < {a}) = {prob:.4f}")
+
+                elif case == "P(Z > a)":
+
+                    a = st.slider("Select a", -3.0, 3.0, 1.0)
+
+                    mask = x >= a
+                    prob = 1 - norm.cdf(a)
+
+                    fig.add_trace(go.Scatter(
+                        x=x[mask],
+                        y=y[mask],
+                        fill='tozeroy',
+                        mode='lines',
+                        name='Shaded Area'
+                    ))
+
+                    st.success(f"P(Z > {a}) = {prob:.4f}")
+
+                elif case == "P(a < Z < b)":
+
+                    a = st.slider("Select a", -3.0, 3.0, -1.0)
+                    b = st.slider("Select b", -3.0, 3.0, 1.0)
+
+                    if a < b:
+
+                        mask = (x >= a) & (x <= b)
+                        prob = norm.cdf(b) - norm.cdf(a)
+
+                        fig.add_trace(go.Scatter(
+                            x=x[mask],
+                            y=y[mask],
+                            fill='tozeroy',
+                            mode='lines',
+                            name='Shaded Area'
+                        ))
+
+                        st.success(f"P({a} < Z < {b}) = {prob:.4f}")
+                    else:
+                        st.error("Make sure a < b")
+
+                frames = []
+
+                for i in range(50):
+                    cutoff = -4 + i * (8 / 50)
+                    mask = x <= cutoff
+
+                    frames.append(go.Frame(
+                        data=[go.Scatter(
+                            x=x[mask],
+                            y=y[mask],
+                            fill='tozeroy',
+                            mode='lines'
+                        )]
+                    ))
+
+                fig.frames = frames
+
+                fig.update_layout(
+                    title="Standard Normal Distribution",
+                    xaxis_title="Z",
+                    yaxis_title="Density",
+                    updatemenus=[{
+                        "type": "buttons",
+                        "buttons": [{
+                            "label": "▶ Animate",
+                            "method": "animate",
+                            "args": [None, {"frame": {"duration": 50}}]
+                        }]
+                    }]
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
 
     # =========================
     # 🏆 PROGRESS TAB
