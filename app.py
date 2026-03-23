@@ -8,6 +8,7 @@ import numpy as np
 import sympy as sp
 import streamlit.components.v1 as components
 import random
+import plotly.graph_objects as go
 
 quotes = [
     "Mathematics is not about numbers, it's about thinking.",
@@ -883,11 +884,136 @@ with tab_practice:
                     3. ∫(x+3)^4 dx  
                     """)
 
-    # =========================
-    # 📊 VISUAL TAB
-    # =========================
-    with tab_visual:
-        st.write("Graphs / visual tools here")
+        # =========================
+        # 📊 VISUAL TAB
+        # =========================
+        with tab_visual:
+
+            st.subheader("📊 Visual Learning")
+
+            topic = st.selectbox(
+                "Choose Topic to Visualize",
+                [
+                    "Functions",
+                    "3D Graph",
+                    "Trigonometry",
+                    "Differentiation",
+                    "Numerical Solution"
+                ]
+            )
+
+            st.caption("Use ** for powers (e.g. x**2)")
+
+            # =========================
+            # FUNCTIONS
+            # =========================
+            if topic == "Functions":
+
+                expr = st.text_input("Enter function f(x):", "x**2")
+
+                if st.button("Plot Graph"):
+
+                    x = sp.symbols('x')
+                    f = sp.sympify(expr)
+                    f_lamb = sp.lambdify(x, f, "numpy")
+
+                    x_vals = np.linspace(-10, 10, 1000)
+                    y_vals = f_lamb(x_vals)
+
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Scatter(
+                        x=x_vals,
+                        y=y_vals,
+                        mode='lines',
+                        name='f(x)'
+                    ))
+
+                    fig.update_layout(title="Interactive Graph")
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+            # =========================
+            # 3D GRAPH
+            # =========================
+            elif topic == "3D Graph":
+
+                expr = st.text_input("Enter z = f(x, y):", "x**2 + y**2")
+
+                if st.button("Plot 3D"):
+
+                    x, y = sp.symbols('x y')
+                    f = sp.sympify(expr)
+                    f_lamb = sp.lambdify((x, y), f, "numpy")
+
+                    x_vals = np.linspace(-5, 5, 50)
+                    y_vals = np.linspace(-5, 5, 50)
+                    X, Y = np.meshgrid(x_vals, y_vals)
+                    Z = f_lamb(X, Y)
+
+                    fig = go.Figure(data=[go.Surface(z=Z, x=X, y=Y)])
+
+                    fig.update_layout(title="3D Surface Plot")
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+            # =========================
+            # TRIG
+            # =========================
+            elif topic == "Trigonometry":
+
+                func = st.selectbox("Choose Function", ["sin", "cos", "tan"])
+
+                x_vals = np.linspace(-2*np.pi, 2*np.pi, 1000)
+
+                if func == "sin":
+                    y_vals = np.sin(x_vals)
+                elif func == "cos":
+                    y_vals = np.cos(x_vals)
+                else:
+                    y_vals = np.tan(x_vals)
+                    y_vals[np.abs(y_vals) > 10] = np.nan  # fix asymptote explosion
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines'))
+
+                st.plotly_chart(fig, use_container_width=True)
+
+            # =========================
+            # DIFFERENTIATION
+            # =========================
+            elif topic == "Differentiation":
+
+                expr = st.text_input("Enter function:", "x**2")
+
+                if st.button("Show Derivative"):
+
+                    x = sp.symbols('x')
+                    f = sp.sympify(expr)
+                    f_prime = sp.diff(f, x)
+
+                    st.latex(f"f'(x) = {sp.latex(f_prime)}")
+
+            # =========================
+            # NUMERICAL SOLUTION
+            # =========================
+            elif topic == "Numerical Solution":
+
+                expr = st.text_input("Enter f(x):", "x**2 - 4")
+
+                if st.button("Newton Method"):
+
+                    x = sp.symbols('x')
+                    f = sp.sympify(expr)
+                    f_prime = sp.diff(f, x)
+
+                    x0 = 1
+
+                    for i in range(5):
+                        x1 = x0 - float(f.subs(x, x0)) / float(f_prime.subs(x, x0))
+                        st.write(f"Iteration {i}: x = {x0:.5f}")
+                        x0 = x1
 
     # =========================
     # 🏆 PROGRESS TAB
