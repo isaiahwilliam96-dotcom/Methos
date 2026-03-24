@@ -1667,20 +1667,100 @@ with tab_notes:
             # =========================
             elif topic == "Numerical Solution":
 
-                expr = st.text_input("Enter f(x):", "x**2 - 4")
+                st.markdown("### 🔍 Intersection of Two Functions")
 
-                if st.button("Newton Method"):
+                expr1 = st.text_input("Enter f(x):", "x**2")
+                expr2 = st.text_input("Enter g(x) (leave blank for x-axis):", "")
+
+                is_root_mode = False
+
+                if expr2.strip() == "":
+                    expr2 = "0"
+                    is_root_mode = True
+
+                if expr2.strip() == "":
+                    expr2 = "0"
+
+                x0 = st.number_input("Initial guess (x0)", value=1.0)
+
+                if st.button("Find Intersection"):
 
                     x = sp.symbols('x')
-                    f = sp.sympify(expr)
-                    f_prime = sp.diff(f, x)
 
-                    x0 = 1
+                    f = sp.sympify(expr1)
+                    g = sp.sympify(expr2)
 
-                for i in range(5):
-                    x1 = x0 - float(f.subs(x, x0)) / float(f_prime.subs(x, x0))
-                    st.write(f"Iteration {i}: x = {x0:.5f}")
-                    x0 = x1
+                    h = f - g   # 🔥 key idea
+                    h_prime = sp.diff(h, x)
+
+                    # Convert to numpy
+                    f_lamb = sp.lambdify(x, f, "numpy")
+                    g_lamb = sp.lambdify(x, g, "numpy")
+
+                    # Newton Method
+                    for i in range(10):
+                        x1 = x0 - float(h.subs(x, x0)) / float(h_prime.subs(x, x0))
+                        x0 = x1
+
+                    root = x0
+                    y_val = f_lamb(root)
+
+                    # ✅ PUT YOUR MESSAGE HERE
+                    if float(expr2) == 0:
+                        st.success(f"Root at x ≈ {root:.4f}")
+                    else:
+                        st.success(f"Intersection at x ≈ {root:.4f}, y ≈ {y_val:.4f}")
+
+                    # =========================
+                    # 📊 GRAPH
+                    # =========================
+                    x_vals = np.linspace(-10, 10, 1000)
+
+                    y1 = f_lamb(x_vals)
+                    y2 = g_lamb(x_vals)
+
+                    # 🔥 Fix for constant functions
+                    if np.isscalar(y1):
+                        y1 = np.full_like(x_vals, y1)
+
+                    if np.isscalar(y2):
+                        y2 = np.full_like(x_vals, y2)
+
+                    fig = go.Figure()
+
+                    # f(x)
+                    fig.add_trace(go.Scatter(
+                        x=x_vals,
+                        y=y1,
+                        mode='lines',
+                        name='f(x)'
+                    ))
+
+                    # g(x)
+                    fig.add_trace(go.Scatter(
+                        x=x_vals,
+                        y=y2,
+                        mode='lines',
+                        name='g(x)'
+                    ))
+
+                    # Intersection point
+                    fig.add_trace(go.Scatter(
+                        x=[root],
+                        y=[y_val],
+                        mode='markers+text',
+                        text=[f"x ≈ {root:.2f}"],
+                        textposition="top center",
+                        marker=dict(size=10)
+                    ))
+
+                    fig.update_layout(
+                        title="Intersection of Two Functions",
+                        xaxis_title="x",
+                        yaxis_title="y"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
 
             # =========================
             # COMPLEX NUMBERS (ARGAND)
