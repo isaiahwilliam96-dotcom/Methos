@@ -318,10 +318,17 @@ with tab_practice:
     st.markdown("### 🎯 Generate PSPM Questions")
 
     # ✅ MOVE THIS UP
+    # ✅ Persist difficulty
+    if "difficulty" not in st.session_state:
+        st.session_state.difficulty = "Intermediate"
+
     difficulty = st.selectbox(
         "Select Difficulty Level:",
-        ["Beginner", "Intermediate", "Advanced"]
+        ["Beginner", "Intermediate", "Advanced"],
+        index=["Beginner","Intermediate","Advanced"].index(st.session_state.difficulty)
     )
+
+    st.session_state.difficulty = difficulty
 
     pspm_topic = st.text_input(
         "Enter topic (e.g. Differentiation, Integration, Probability):",
@@ -995,7 +1002,7 @@ with tab_notes:
             [
                 "Chapter 1: Numerical Solution",
                 "Chapter 2: Integration",
-                "Chapter 3: First Order Differential Equation",
+                "Chapter 3: First Order Differential Equations",
                 "Chapter 4: Conics",
                 "Chapter 5: Vectors",
                 "Chapter 6: Data Description",
@@ -1201,6 +1208,252 @@ with tab_notes:
                 3. ∫(x+3)^4 dx  
                 """)
 
+        if chapter == "Chapter 3: First Order Differential Equations":
+
+            st.markdown("## 📚 Chapter 3: First Order Differential Equations")
+
+            # -----------------------
+            # 1. Basic Concepts
+            # -----------------------
+            with st.expander("📌 Basic Concepts of Differential Equations"):
+
+                st.markdown("""
+            **Differential Equation (DE):**  
+            An equation involving derivatives of a function.
+
+            **Order:** Highest derivative in the equation  
+            **Degree:** Power of the highest derivative  
+
+            **General Solution:**  
+            Contains arbitrary constant  
+            Example: y = Ae^(kx)
+
+            **Particular Solution:**  
+            Obtained by substituting given conditions
+                """)
+
+            # -----------------------
+            # 2. Separable Variables
+            # -----------------------
+            with st.expander("🔀 Separable Variables"):
+
+                st.latex(r"\frac{dy}{dx} = P(x)Q(y)")
+
+                st.markdown("### Steps:")
+                st.markdown("""
+            1. Separate variables  
+            2. Integrate both sides  
+                """)
+
+                st.latex(r"\frac{1}{Q(y)} dy = P(x) dx")
+                st.latex(r"\int \frac{1}{Q(y)} dy = \int P(x) dx")
+
+            # -----------------------
+            # 3. Integrating Factor
+            # -----------------------
+            with st.expander("🧠 Integrating Factor Method"):
+
+                st.latex(r"\frac{dy}{dx} + P(x)y = Q(x)")
+
+                st.markdown("### Steps:")
+
+                st.markdown("""
+            1. Standard form: dy/dx + P(x)y = Q(x)  
+            2. Integrating factor:  
+                """)
+
+                st.latex(r"V(x) = e^{\int P(x) dx}")
+
+                st.markdown("""
+            3. Multiply entire equation by V(x)  
+            4. Apply product rule  
+            5. Integrate both sides  
+                """)
+
+                st.latex(r"\frac{d}{dx}(V(x)y) = V(x)Q(x)")
+
+            # -----------------------
+            # 4. Applications
+            # -----------------------
+            with st.expander("🌍 Applications of Differential Equations"):
+
+                st.markdown("### (a) Population Growth")
+
+                st.latex(r"\frac{dP}{dt} = kP")
+                st.latex(r"P = Ae^{kt}")
+
+                st.markdown("""
+            - Growth rate proportional to population  
+            - Used in bacteria growth problems  
+                """)
+
+                st.markdown("### (b) Radioactive Decay")
+
+                st.latex(r"\frac{dC}{dt} = -kC")
+                st.latex(r"C = Ae^{-kt}")
+
+                st.markdown("""
+            - Decay rate proportional to amount present  
+                """)
+
+                st.markdown("### (c) Newton's Law of Cooling")
+
+                st.latex(r"\frac{d\theta}{dt} = -k(\theta - a)")
+                st.latex(r"\theta = Ae^{-kt} + a")
+
+                st.markdown("""
+            - Temperature approaches surrounding temperature  
+                """)
+
+        if chapter == "Chapter 4: Conics":
+
+            st.markdown("## 📘 Chapter 4: Conics")
+
+            # =========================
+            # 4.1 CIRCLES
+            # =========================
+            with st.expander("🔵 4.1 Circles", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Equation of circle  
+                LO2: Centre & radius  
+                LO3: Intersection  
+                LO4: Tangent & normal  
+                LO5: Length of tangent  
+                """)
+
+                # -------------------------
+                # Equation
+                # -------------------------
+                with st.expander("📘 Equation of Circle"):
+
+                    st.markdown("### Standard Form")
+                    st.latex(r"(x - h)^2 + (y - k)^2 = r^2")
+
+                    st.markdown("### General Form")
+                    st.latex(r"x^2 + y^2 + 2gx + 2fy + c = 0")
+
+                    st.markdown("""
+                    Centre = (-g, -f)  
+                    Radius = √(g² + f² - c)
+                    """)
+
+                # -------------------------
+                # Centre & Radius
+                # -------------------------
+                with st.expander("📍 Centre & Radius (Completing Square)"):
+
+                    st.markdown("""
+                    Steps:
+                    1. Group x and y terms  
+                    2. Complete the square  
+                    3. Compare with standard form  
+                    """)
+
+                # -------------------------
+                # Intersection
+                # -------------------------
+                with st.expander("🔀 Points of Intersection"):
+
+                    st.markdown("### Circle & Line")
+
+                    st.latex(r"d = \frac{|ax + by + c|}{\sqrt{a^2 + b^2}}")
+
+                    st.markdown("""
+                    - d > r → no intersection  
+                    - d = r → tangent  
+                    - d < r → 2 points  
+                    """)
+
+                    st.markdown("### Two Circles")
+
+                    st.markdown("""
+                    Use discriminant:
+
+                    - > 0 → 2 points  
+                    - = 0 → 1 point  
+                    - < 0 → no intersection  
+                    """)
+
+                # -------------------------
+                # Tangent & Normal
+                # -------------------------
+                with st.expander("📏 Tangent & Normal"):
+
+                    st.latex(r"xx_1 + yy_1 + g(x + x_1) + f(y + y_1) + c = 0")
+
+                    st.markdown("""
+                    Steps:
+                    1. Find gradient of radius  
+                    2. Use m₁m₂ = -1  
+                    3. Use y - y₁ = m(x - x₁)  
+                    """)
+
+                # -------------------------
+                # Length of Tangent
+                # -------------------------
+                with st.expander("📐 Length of Tangent"):
+
+                    st.latex(r"d = \sqrt{x_1^2 + y_1^2 + 2gx_1 + 2fy_1 + c}")
+                    st.latex(r"d^2 = D^2 - r^2")
+
+            # =========================
+            # 4.2 ELLIPSE
+            # =========================
+            with st.expander("🟠 4.2 Ellipse"):
+
+                st.markdown("### Standard Equation")
+                st.latex(r"\frac{(x-h)^2}{a^2} + \frac{(y-k)^2}{b^2} = 1")
+
+                st.markdown("### Relationships")
+                st.latex(r"c^2 = a^2 - b^2 \ (a > b)")
+                st.latex(r"c^2 = b^2 - a^2 \ (b > a)")
+
+                st.markdown("### Key Terms")
+
+                st.markdown("""
+                Centre: (h, k)
+
+                Major vertices:
+                - (h ± a, k) or (h, k ± a)
+
+                Minor vertices:
+                - (h ± b, k) or (h, k ± b)
+
+                Foci:
+                - (h ± c, k) or (h, k ± c)
+                """)
+
+            # =========================
+            # 4.3 PARABOLA
+            # =========================
+            with st.expander("🟣 4.3 Parabola"):
+
+                st.markdown("### Definition")
+                st.write("""
+                A parabola is a set of points equidistant from:
+                - a focus
+                - a directrix
+                """)
+
+                st.markdown("### Standard Forms")
+
+                st.latex(r"(y-k)^2 = 4p(x-h)")
+                st.latex(r"(x-h)^2 = 4p(y-k)")
+
+                st.markdown("""
+                Vertex: (h, k)
+
+                Focus:
+                - (h + p, k)
+                - (h, k + p)
+
+                Directrix:
+                - x = h - p
+                - y = k - p
+                """)
+
         # =========================
         # 📊 VISUAL TAB
         # =========================
@@ -1217,7 +1470,8 @@ with tab_notes:
                     "Differentiation",
                     "Numerical Solution",
                     "Probability Distribution",
-                    "Complex Numbers (Argand)"
+                    "Complex Numbers (Argand)",
+                    "Conics (Circles, Parabola, Ellipse)"
                 ]
             )
 
@@ -1303,15 +1557,110 @@ with tab_notes:
             # =========================
             elif topic == "Differentiation":
 
+                st.markdown("### 📈 Differentiation Visualizer")
+
                 expr = st.text_input("Enter function:", "x**2")
 
-                if st.button("Show Derivative"):
+                col1, col2 = st.columns(2)
 
-                    x = sp.symbols('x')
-                    f = sp.sympify(expr)
-                    f_prime = sp.diff(f, x)
+                with col1:
+                    x_min = st.number_input("Min x", value=-10.0)
 
-                    st.latex(f"f'(x) = {sp.latex(f_prime)}")
+                with col2:
+                    x_max = st.number_input("Max x", value=10.0)
+
+                if x_min >= x_max:
+                    st.error("Min x must be less than Max x")
+                    st.stop()
+
+                x = sp.symbols('x')
+                f = sp.sympify(expr)
+                f_prime = sp.diff(f, x)
+
+                f_lamb = sp.lambdify(x, f, "numpy")
+                f_prime_lamb = sp.lambdify(x, f_prime, "numpy")
+
+                # ✅ STEP 2 GOES HERE
+                x_vals = np.linspace(x_min, x_max, 1000)
+
+                a = st.slider(
+                    "Choose point x = a",
+                    float(x_min),
+                    float(x_max),
+                    float((x_min + x_max)/2)
+                )
+
+                import re
+
+                # Fix missing multiplication like 3x → 3*x
+                expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
+
+                # Fix x(x+1) → x*(x+1)
+                expr = re.sub(r'([a-zA-Z])\(', r'\1*(', expr)
+
+                # Fix )( → )*(
+                expr = re.sub(r'\)([a-zA-Z])', r')*\1', expr)
+
+                # Convert ^ → **
+                expr = expr.replace("^", "**")
+
+                f = sp.sympify(expr)
+                f_prime = sp.diff(f, x)
+
+                st.latex(rf"f'(x) = {sp.latex(f_prime)}")
+
+                # Convert to numpy
+                f_lamb = sp.lambdify(x, f, "numpy")
+                f_prime_lamb = sp.lambdify(x, f_prime, "numpy")
+
+                # Range
+                x_vals = np.linspace(-10, 10, 1000)
+                y_vals = f_lamb(x_vals)
+
+                y_a = f_lamb(a)
+                slope = f_prime_lamb(a)
+
+                # Tangent line: y = m(x - a) + f(a)
+                tangent = slope * (x_vals - a) + y_a
+
+                fig = go.Figure()
+
+                # Function curve
+                fig.add_trace(go.Scatter(
+                    x=x_vals,
+                    y=y_vals,
+                    mode='lines',
+                    name='f(x)'
+                ))
+
+                # Tangent line
+                fig.add_trace(go.Scatter(
+                    x=x_vals,
+                    y=tangent,
+                    mode='lines',
+                    name='Tangent',
+                    line=dict(dash='dash')
+                ))
+
+                # Point of contact
+                fig.add_trace(go.Scatter(
+                    x=[a],
+                    y=[y_a],
+                    mode='markers+text',
+                    text=[f"x={a:.2f}"],
+                    textposition="top center"
+                ))
+
+                fig.update_layout(
+                    title="Function and Tangent Line",
+                    xaxis_title="x",
+                    yaxis_title="y"
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Show gradient value
+                st.success(f"Gradient at x = {a:.2f} is {slope:.3f}")
 
             # =========================
             # NUMERICAL SOLUTION
@@ -1328,10 +1677,10 @@ with tab_notes:
 
                     x0 = 1
 
-                    for i in range(5):
-                        x1 = x0 - float(f.subs(x, x0)) / float(f_prime.subs(x, x0))
-                        st.write(f"Iteration {i}: x = {x0:.5f}")
-                        x0 = x1
+                for i in range(5):
+                    x1 = x0 - float(f.subs(x, x0)) / float(f_prime.subs(x, x0))
+                    st.write(f"Iteration {i}: x = {x0:.5f}")
+                    x0 = x1
 
             # =========================
             # COMPLEX NUMBERS (ARGAND)
@@ -1764,6 +2113,133 @@ with tab_notes:
                     )
 
                     st.plotly_chart(fig, use_container_width=True)
+
+            elif topic == "Conics (Circles, Parabola, Ellipse)":
+
+                st.markdown("### 📐 Conics Visualiser")
+
+                conic_type = st.selectbox(
+                    "Choose Conic",
+                    ["Circle", "Parabola", "Ellipse"]
+                )
+
+                # =========================
+                # CIRCLE
+                # =========================
+                if conic_type == "Circle":
+
+                    h = st.slider("Center x (h)", -5.0, 5.0, 0.0)
+                    k = st.slider("Center y (k)", -5.0, 5.0, 0.0)
+                    r = st.slider("Radius", 1.0, 10.0, 3.0)
+
+                    theta = np.linspace(0, 2*np.pi, 500)
+                    x = h + r * np.cos(theta)
+                    y = k + r * np.sin(theta)
+
+                    fig = go.Figure()
+
+                    # Circle
+                    fig.add_trace(go.Scatter(x=x, y=y, mode='lines'))
+
+                    # Center
+                    fig.add_trace(go.Scatter(x=[h], y=[k], mode='markers+text',
+                                            text=["Center"],
+                                            textposition="top center"))
+
+                    fig.update_layout(
+                        title="Circle",
+                        xaxis=dict(scaleanchor="y"),
+                        yaxis=dict(),
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.latex(rf"(x - {h})^2 + (y - {k})^2 = {r}^2")
+
+                # =========================
+                # PARABOLA
+                # =========================
+                elif conic_type == "Parabola":
+
+                    h = st.slider("Vertex x (h)", -5.0, 5.0, 0.0)
+                    k = st.slider("Vertex y (k)", -5.0, 5.0, 0.0)
+                    p = st.slider("p (focus distance)", 0.5, 5.0, 2.0)
+
+                    x = np.linspace(-10, 10, 500)
+                    y = (1/(4*p))*(x - h)**2 + k
+
+                    fig = go.Figure()
+
+                    # Parabola
+                    fig.add_trace(go.Scatter(x=x, y=y, mode='lines'))
+
+                    # Vertex
+                    fig.add_trace(go.Scatter(x=[h], y=[k], mode='markers+text',
+                                            text=["Vertex"],
+                                            textposition="bottom center"))
+
+                    # Focus
+                    fig.add_trace(go.Scatter(x=[h], y=[k+p], mode='markers+text',
+                                            text=["Focus"],
+                                            textposition="top center"))
+
+                    # Directrix
+                    fig.add_shape(
+                        type="line",
+                        x0=-10, x1=10,
+                        y0=k-p, y1=k-p,
+                        line=dict(dash='dash')
+                    )
+
+                    fig.update_layout(title="Parabola")
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.latex(rf"(x - {h})^2 = {4*p}(y - {k})")
+
+                # =========================
+                # ELLIPSE
+                # =========================
+                elif conic_type == "Ellipse":
+
+                    h = st.slider("Center x (h)", -5.0, 5.0, 0.0)
+                    k = st.slider("Center y (k)", -5.0, 5.0, 0.0)
+                    a = st.slider("a (major axis)", 2.0, 10.0, 5.0)
+                    b = st.slider("b (minor axis)", 1.0, 8.0, 3.0)
+
+                    t = np.linspace(0, 2*np.pi, 500)
+                    x = h + a * np.cos(t)
+                    y = k + b * np.sin(t)
+
+                    fig = go.Figure()
+
+                    # Ellipse
+                    fig.add_trace(go.Scatter(x=x, y=y, mode='lines'))
+
+                    # Center
+                    fig.add_trace(go.Scatter(x=[h], y=[k], mode='markers+text',
+                                            text=["Center"],
+                                            textposition="top center"))
+
+                    # Foci
+                    c = np.sqrt(abs(a**2 - b**2))
+
+                    fig.add_trace(go.Scatter(
+                        x=[h + c, h - c],
+                        y=[k, k],
+                        mode='markers+text',
+                        text=["F1", "F2"],
+                        textposition="top center"
+                    ))
+
+                    fig.update_layout(
+                        title="Ellipse",
+                        xaxis=dict(scaleanchor="y")
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.latex(rf"\frac{{(x - {h})^2}}{{{a**2}}} + \frac{{(y - {k})^2}}{{{b**2}}} = 1")
 
 # =========================
 # 🏆 PROGRESS TAB
