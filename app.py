@@ -14,6 +14,21 @@ import plotly.graph_objects as go
 from scipy.stats import norm
 import numpy as np
 
+if "score" not in st.session_state:
+    st.session_state.score = 0
+
+if "streak" not in st.session_state:
+    st.session_state.streak = 0
+
+if "attempts" not in st.session_state:
+    st.session_state.attempts = 0
+
+if "correct" not in st.session_state:
+    st.session_state.correct = 0
+
+if "topic_stats" not in st.session_state:
+    st.session_state.topic_stats = {}
+
 quotes = [
     "Mathematics is not about numbers, it's about thinking.",
     "Struggle in math today builds clarity tomorrow.",
@@ -115,6 +130,14 @@ st.markdown("""
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+def ask_ai(prompt, max_tokens=300):
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=prompt,
+        max_output_tokens=max_tokens
+    )
+    return response.output_text
+
 # -----------------------
 # Music Function
 # -----------------------
@@ -139,6 +162,10 @@ if "answer" not in st.session_state:
 
 if "current_problem" not in st.session_state:
     st.session_state.current_problem = ""
+
+# ✅ ADD THIS
+if "topic_stats" not in st.session_state:
+    st.session_state.topic_stats = {}
 
 # -----------------------
 # Sidebar
@@ -285,10 +312,55 @@ with tab_practice:
 
     st.write("I give hints, not answers.")
 
+    # -----------------------
+    # 🎯 PSPM Question Generator
+    # -----------------------
+    st.markdown("### 🎯 Generate PSPM Questions")
+
+    # ✅ MOVE THIS UP
     difficulty = st.selectbox(
         "Select Difficulty Level:",
         ["Beginner", "Intermediate", "Advanced"]
     )
+
+    pspm_topic = st.text_input(
+        "Enter topic (e.g. Differentiation, Integration, Probability):",
+        key="pspm_topic"
+    )
+
+    if st.button("Generate PSPM Question"):
+
+        if pspm_topic:
+
+            prompt = f"""
+    Create a Malaysian Matriculation (PSPM) mathematics question.
+
+    Topic: {pspm_topic}
+    Difficulty: {difficulty}
+
+    Rules:
+    - Follow real PSPM exam style
+    - Clear wording
+    - Include numbers and context if needed
+    - DO NOT give solution
+    - Only output the question
+
+    Optional:
+    - Add (a), (b) parts if suitable
+    """
+
+            generated_q = ask_ai(prompt, max_tokens=300)
+
+            # ✅ SET AS CURRENT PROBLEM
+            st.session_state.current_problem = generated_q
+            st.session_state.answer = ""
+            st.session_state.hint_level = 0
+
+            st.success("PSPM Question Generated!")
+            st.write(generated_q)
+
+        else:
+            st.warning("Please enter a topic.")
 
     # -----------------------
     # Input
@@ -300,6 +372,9 @@ with tab_practice:
         height=150,
         placeholder="Type your math question here..."
     )
+
+    if st.session_state.current_problem:
+        user_input = st.session_state.current_problem
 
     uploaded_file = st.file_uploader(
         "Upload a photo of your math problem",
@@ -314,35 +389,36 @@ with tab_practice:
         image_bytes = uploaded_file.read()
         encoded_image = base64.b64encode(image_bytes).decode()
 
-        response = client.responses.create(
-        model="gpt-4.1",
-        input=[{
-            "role":"user",
-            "content":[
-                {
-                    "type":"input_text",
-                    "text": """
-    Extract the math function and convert it into a valid Python SymPy expression.
+        def extract_math_from_image(encoded_image):
+            return client.responses.create(
+                model="gpt-4.1",
+                input=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": """
+        Extract the math function and convert it into a valid Python SymPy expression.
 
-    STRICT RULES:
-    - Use * for multiplication (2*x, not 2x)
-    - Use ** for powers (x**2, not x^2)
-    - Use standard functions: sin(x), cos(x), log(x), sqrt(x)
-    - Do NOT include explanations
-    - Do NOT include words
-    - Output ONLY the expression
+        STRICT RULES:
+        - Use * for multiplication (2*x, not 2x)
+        - Use ** for powers (x**2, not x^2)
+        - Use standard functions: sin(x), cos(x), log(x), sqrt(x)
+        - Do NOT include explanations
+        - Do NOT include words
+        - Output ONLY the expression
 
-    Example:
-    x^2 + 2x + 1 → x**2 + 2*x + 1
-    """
-                },
-                    {
-                        "type":"input_image",
-                        "image_url":f"data:image/jpeg;base64,{encoded_image}"
-                    }
-                ]
-            }]
-        )
+        Example:
+        x^2 + 2x + 1 → x**2 + 2*x + 1
+        """
+                        },
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{encoded_image}"
+                        }
+                    ]
+                }]
+            ).output_text
 
         user_input = response.output_text
         st.info("📷 Problem extracted from image.")
@@ -392,6 +468,24 @@ with tab_practice:
             )
 
             st.write(response.output_text)
+
+            result = response.output_text
+            st.write(result)
+
+            is_correct = result.strip().lower().startswith("correct")
+
+            topic_name = topic
+
+            if topic_name not in st.session_state.topic_stats:
+                st.session_state.topic_stats[topic_name] = {
+                    "attempts": 0,
+                    "correct": 0
+                }
+
+            st.session_state.topic_stats[topic_name]["attempts"] += 1
+
+            if is_correct:
+                st.session_state.topic_stats[topic_name]["correct"] += 1
 
     # -----------------------
     # Identify Topic
@@ -588,22 +682,20 @@ with tab_practice:
 
         if st.button("📘 Show Answer (0 points)"):
 
-            response = client.responses.create(
-        model="gpt-4.1",
-        input=f"""
-    Solve using the correct method.
+            prompt = f"""
+            Solve using the correct method.
 
-    RULES:
-    - Use LaTeX (wrap equations in $$)
-    - No code formatting
-    - Max 5 steps only
-    - Be concise
+            RULES:
+            - Use LaTeX (wrap equations in $$)
+            - No code formatting
+            - Max 5 steps only
+            - Be concise
 
-    Problem:
-    {user_input}
-    """,
-        max_output_tokens=1000
-    )
+            Problem:
+            {user_input}
+            """
+
+            response = ask_ai(prompt, max_tokens=1000)
 
             st.session_state.answer = response.output_text
             st.session_state.hint_level = 4
@@ -634,40 +726,118 @@ with tab_practice:
             st.rerun()
         # (input, hints, graph, difficulty, etc.)
 
-    # =========================
-    # 📖 NOTES TAB
-    # =========================
-    with tab_notes:
+# =========================
+# 📖 NOTES TAB
+# =========================
+with tab_notes:
 
-        st.markdown("## 📚 Mathematics Notes")
+    if "notes_output" not in st.session_state:
+        st.session_state.notes_output = ""
 
-        sem1_tab, sem2_tab = st.tabs(["📘 Semester 1", "📗 Semester 2"])
+    st.markdown("## 🤖 AI Smart Notes")
 
-        # =========================
-        # SEMESTER 1
-        # =========================
-        with sem1_tab:
+    topic = st.text_input(
+        "Enter a topic:",
+        placeholder="Example: Differentiation",
+        key="notes_topic"
+    )
 
-            chapter = st.selectbox(
-                "Choose Chapter",
-                [
-                    "Chapter 1: Number System",
-                    "Chapter 2: Equations, Inequalities and Absolute Values",
-                    "Chapter 3: Sequences and Series",
-                    "Chapter 4: Matrices",
-                    "Chapter 5: Functions",
-                    "Chapter 6: Polynomials",
-                    "Chapter 7: Trigonometry",
-                    "Chapter 8: Limits and Continuity",
-                    "Chapter 9: Differentiation",
-                    "Chapter 10: Application of Differentiation"
-                ]
+    if st.button("Generate Notes"):
+
+        topic = st.session_state.notes_topic.strip()
+
+        if topic:
+            st.write(f"Generating notes for: {topic}")
+
+            response = client.responses.create(
+                model="gpt-4.1-mini",
+                input=f"""
+                Create clean mathematics notes for {topic}.
+
+                Rules:
+                - DO NOT mention the word "LaTeX"
+                - Use proper mathematical formatting with $$...$$ for equations
+                - Use clear headings
+                - Tables must NOT contain LaTeX (use normal text like a^2/b^2)
+                """
             )
 
-            st.markdown(f"### {chapter}")
+            # ✅ STORE RAW OUTPUT
+            st.session_state.notes_output = response.output_text
 
-            # ✅ Only show when selected
-            if chapter == "Chapter 1: Number System":
+        else:
+            st.warning("Please enter a topic first.")
+
+        import re
+
+        if st.session_state.notes_output:
+
+            # ✅ PUT IT HERE
+            raw = st.session_state.notes_output
+
+            # split content (tables vs normal text)
+            parts = re.split(r"(\|.*\|)", raw)
+
+            cleaned_parts = []
+
+            for part in parts:
+                if "|" in part:  # only clean tables
+                    part = re.sub(r"\\frac{(.*?)}{(.*?)}", r"\1/\2", part)
+                    part = re.sub(r"\\sqrt{(.*?)}", r"sqrt(\1)", part)
+                    part = part.replace("\\leq", "<=").replace("\\geq", ">=")
+                    part = part.replace("^{2}", "^2")
+
+                cleaned_parts.append(part)
+
+            content = "".join(cleaned_parts)
+
+            st.markdown(content)
+
+    # ✅ KEEP THIS INSIDE
+    if "notes_output" not in st.session_state:
+        st.session_state.notes_output = ""
+
+    if "notes_title" not in st.session_state:
+        st.session_state.notes_title = ""
+
+    col1, col2, col3 = st.columns(3)
+
+    # store result
+    if "notes_output" not in st.session_state:
+        st.session_state.notes_output = ""
+
+    if "notes_title" not in st.session_state:
+        st.session_state.notes_title = ""
+
+    st.markdown("## 📚 Mathematics Notes")
+
+    sem1_tab, sem2_tab = st.tabs(["📘 Semester 1", "📗 Semester 2"])
+
+    # =========================
+    # SEMESTER 1
+    # =========================
+    with sem1_tab:
+
+        chapter = st.selectbox(
+            "Choose Chapter",
+            [
+                "Chapter 1: Number System",
+                "Chapter 2: Equations, Inequalities and Absolute Values",
+                "Chapter 3: Sequences and Series",
+                "Chapter 4: Matrices",
+                "Chapter 5: Functions",
+                "Chapter 6: Polynomials",
+                "Chapter 7: Trigonometry",
+                "Chapter 8: Limits and Continuity",
+                "Chapter 9: Differentiation",
+                "Chapter 10: Application of Differentiation"
+            ]
+        )
+
+        st.markdown(f"### {chapter}")
+
+        # ✅ Only show when selected
+        if chapter == "Chapter 1: Number System":
 
                 st.markdown("## 📘 Chapter 1: Number System")
 
@@ -815,221 +985,221 @@ with tab_practice:
             - (a, b] or [a, b) → mixed  
                     """)
 
-        # =========================
-        # SEMESTER 2
-        # =========================
-        with sem2_tab:
+    # =========================
+    # SEMESTER 2
+    # =========================
+    with sem2_tab:
 
-            chapter = st.selectbox(
-                "Choose Chapter",
-                [
-                    "Chapter 1: Numerical Solution",
-                    "Chapter 2: Integration",
-                    "Chapter 3: First Order Differential Equation",
-                    "Chapter 4: Conics",
-                    "Chapter 5: Vectors",
-                    "Chapter 6: Data Description",
-                    "Chapter 7: Probability",
-                    "Chapter 8: Random Variables",
-                    "Chapter 9: Special Probability Distribution"
-                ]
-            )
+        chapter = st.selectbox(
+            "Choose Chapter",
+            [
+                "Chapter 1: Numerical Solution",
+                "Chapter 2: Integration",
+                "Chapter 3: First Order Differential Equation",
+                "Chapter 4: Conics",
+                "Chapter 5: Vectors",
+                "Chapter 6: Data Description",
+                "Chapter 7: Probability",
+                "Chapter 8: Random Variables",
+                "Chapter 9: Special Probability Distribution"
+            ]
+        )
 
-            # ✅ Only show when selected
-            if chapter == "Chapter 1: Numerical Solution":
+        # ✅ Only show when selected
+        if chapter == "Chapter 1: Numerical Solution":
 
-                st.markdown("## 📘 Chapter 1: Numerical Solutions")
+            st.markdown("## 📘 Chapter 1: Numerical Solutions")
 
-                # =========================
-                # 1.1 SECTION
-                # =========================
-                with st.expander("📊 1.1 Numerical Solution of Equations", expanded=True):
+            # =========================
+            # 1.1 SECTION
+            # =========================
+            with st.expander("📊 1.1 Numerical Solution of Equations", expanded=True):
 
-                    st.markdown("### 📌 Learning Outcome")
-                    st.info("Locate approximately a root of an equation using graphical or algebraic methods.")
+                st.markdown("### 📌 Learning Outcome")
+                st.info("Locate approximately a root of an equation using graphical or algebraic methods.")
 
+                st.markdown("""
+    Many equations **cannot be solved exactly**, so we use **numerical methods** to find approximate solutions.
+
+    ### 🧠 Key Idea
+    There are two main steps:
+    1. Find an **initial approximate value**
+    2. Improve it using an **iterative process**
+    """)
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("### 📊 Graphical Method")
                     st.markdown("""
-        Many equations **cannot be solved exactly**, so we use **numerical methods** to find approximate solutions.
+    - Sketch the graph of **y = f(x)**
+    - Root = where graph cuts x-axis
+    """)
 
-        ### 🧠 Key Idea
-        There are two main steps:
-        1. Find an **initial approximate value**
-        2. Improve it using an **iterative process**
-        """)
-
-                    col1, col2 = st.columns(2)
-
-                    with col1:
-                        st.markdown("### 📊 Graphical Method")
-                        st.markdown("""
-        - Sketch the graph of **y = f(x)**
-        - Root = where graph cuts x-axis
-        """)
-
-                    with col2:
-                        st.markdown("### 🔢 Algebraic Method")
-                        st.markdown("""
-        - Choose a and b
-        - f(a), f(b) opposite signs
-        → root exists between them
-        """)
-
-                # =========================
-                # 1.2 SECTION
-                # =========================
-                with st.expander("🧩 1.2 Newton-Raphson Method"):
-
-                    st.markdown("### 📌 Learning Outcome")
-                    st.info("Find the root using Newton-Raphson Method")
-
-                    st.latex(r"x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}")
-
+                with col2:
+                    st.markdown("### 🔢 Algebraic Method")
                     st.markdown("""
-        Steps:
-        1. Find f(x), f'(x)
-        2. Choose x₀
-        3. Iterate until accurate
-        """)
-            if chapter == "Chapter 2: Integration":
+    - Choose a and b
+    - f(a), f(b) opposite signs
+    → root exists between them
+    """)
 
-                st.markdown("## 📗 Chapter 2: Integration")
+            # =========================
+            # 1.2 SECTION
+            # =========================
+            with st.expander("🧩 1.2 Newton-Raphson Method"):
 
-                # =========================
-                # 2.1 Integration of Functions
-                # =========================
-                with st.expander("📘 2.1 Integration of Functions", expanded=True):
+                st.markdown("### 📌 Learning Outcome")
+                st.info("Find the root using Newton-Raphson Method")
 
-                    st.markdown("### 📌 Learning Outcomes")
-                    st.info("""
-                    LO1: Relate integration and differentiation  
-                    LO2: Define basic rules of integration  
-                    LO3: Integrate exponential functions
-                    """)
+                st.latex(r"x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}")
 
-                    st.markdown("### 🔁 Relationship")
-                    st.latex(r"F(x) = x^3 \quad \Rightarrow \quad f(x) = 3x^2")
+                st.markdown("""
+    Steps:
+    1. Find f(x), f'(x)
+    2. Choose x₀
+    3. Iterate until accurate
+    """)
+        if chapter == "Chapter 2: Integration":
 
-                    st.markdown("Integration is the reverse of differentiation.")
+            st.markdown("## 📗 Chapter 2: Integration")
 
-                    st.latex(r"\int f'(x)\,dx = f(x) + C")
+            # =========================
+            # 2.1 Integration of Functions
+            # =========================
+            with st.expander("📘 2.1 Integration of Functions", expanded=True):
 
-                # =========================
-                # 2.2 Basic Rules
-                # =========================
-                with st.expander("📘 2.2 Basic Rules of Integration"):
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Relate integration and differentiation  
+                LO2: Define basic rules of integration  
+                LO3: Integrate exponential functions
+                """)
 
-                    st.markdown("### 📦 Core Rules")
+                st.markdown("### 🔁 Relationship")
+                st.latex(r"F(x) = x^3 \quad \Rightarrow \quad f(x) = 3x^2")
 
-                    col1, col2 = st.columns(2)
+                st.markdown("Integration is the reverse of differentiation.")
 
-                    with col1:
-                        st.latex(r"\int k\,dx = kx + C")
-                        st.latex(r"\int x^n dx = \frac{x^{n+1}}{n+1} + C")
-                        st.latex(r"\int kf(x)dx = k \int f(x)dx")
+                st.latex(r"\int f'(x)\,dx = f(x) + C")
 
-                    with col2:
-                        st.latex(r"\int [f(x) \pm g(x)]dx = \int f(x)dx \pm \int g(x)dx")
-                        st.latex(r"\int \frac{1}{x}dx = \ln|x| + C")
-                        st.latex(r"\int \frac{1}{ax+b}dx = \frac{1}{a}\ln|ax+b| + C")
+            # =========================
+            # 2.2 Basic Rules
+            # =========================
+            with st.expander("📘 2.2 Basic Rules of Integration"):
 
-                    st.warning("⚠️ ∫f(x)g(x)dx ≠ ∫f(x)dx × ∫g(x)dx")
+                st.markdown("### 📦 Core Rules")
 
-                # =========================
-                # 2.3 Techniques
-                # =========================
-                with st.expander("📘 2.3 Techniques of Integration"):
+                col1, col2 = st.columns(2)
 
-                    st.markdown("### 🔄 Substitution Method")
-                    st.latex(r"\int f(x)g'(x)dx = \int f(u)du")
+                with col1:
+                    st.latex(r"\int k\,dx = kx + C")
+                    st.latex(r"\int x^n dx = \frac{x^{n+1}}{n+1} + C")
+                    st.latex(r"\int kf(x)dx = k \int f(x)dx")
 
-                    st.markdown("""
-                    Steps:
-                    1. Let u = g(x)
-                    2. Find du
-                    3. Substitute
-                    """)
+                with col2:
+                    st.latex(r"\int [f(x) \pm g(x)]dx = \int f(x)dx \pm \int g(x)dx")
+                    st.latex(r"\int \frac{1}{x}dx = \ln|x| + C")
+                    st.latex(r"\int \frac{1}{ax+b}dx = \frac{1}{a}\ln|ax+b| + C")
 
-                    st.markdown("### 🧩 Integration by Parts")
-                    st.latex(r"\int u\,dv = uv - \int v\,du")
+                st.warning("⚠️ ∫f(x)g(x)dx ≠ ∫f(x)dx × ∫g(x)dx")
 
-                    st.info("Use **LPET** → Logarithmic, Polynomial, Exponential, Trigonometric")
+            # =========================
+            # 2.3 Techniques
+            # =========================
+            with st.expander("📘 2.3 Techniques of Integration"):
 
-                # =========================
-                # 2.4 Definite Integrals
-                # =========================
-                with st.expander("📘 2.4 Definite Integrals"):
+                st.markdown("### 🔄 Substitution Method")
+                st.latex(r"\int f(x)g'(x)dx = \int f(u)du")
 
-                    st.latex(r"\int_a^b f(x)dx = F(b) - F(a)")
+                st.markdown("""
+                Steps:
+                1. Let u = g(x)
+                2. Find du
+                3. Substitute
+                """)
 
-                    st.markdown("### Properties")
+                st.markdown("### 🧩 Integration by Parts")
+                st.latex(r"\int u\,dv = uv - \int v\,du")
 
-                    st.latex(r"\int_a^b f(x)dx = -\int_b^a f(x)dx")
-                    st.latex(r"\int_a^a f(x)dx = 0")
-                    st.latex(r"\int_a^c f(x)dx = \int_a^b f(x)dx + \int_b^c f(x)dx")
+                st.info("Use **LPET** → Logarithmic, Polynomial, Exponential, Trigonometric")
 
-                # =========================
-                # 2.5 Area of Region
-                # =========================
-                with st.expander("📘 2.5 Area of a Region"):
+            # =========================
+            # 2.4 Definite Integrals
+            # =========================
+            with st.expander("📘 2.4 Definite Integrals"):
 
-                    st.markdown("### 📐 Area under curve")
-                    st.latex(r"Area = \int_a^b f(x)dx")
+                st.latex(r"\int_a^b f(x)dx = F(b) - F(a)")
 
-                    st.markdown("### Between two curves")
-                    st.latex(r"Area = \int_a^b [f(x) - g(x)]dx")
+                st.markdown("### Properties")
 
-                    st.info("Area is always positive")
+                st.latex(r"\int_a^b f(x)dx = -\int_b^a f(x)dx")
+                st.latex(r"\int_a^a f(x)dx = 0")
+                st.latex(r"\int_a^c f(x)dx = \int_a^b f(x)dx + \int_b^c f(x)dx")
 
-                # =========================
-                # Volume of Revolution
-                # =========================
-                with st.expander("🧊 Volume of Solid of Revolution"):
+            # =========================
+            # 2.5 Area of Region
+            # =========================
+            with st.expander("📘 2.5 Area of a Region"):
 
-                    col1, col2 = st.columns(2)
+                st.markdown("### 📐 Area under curve")
+                st.latex(r"Area = \int_a^b f(x)dx")
 
-                    with col1:
-                        st.markdown("About x-axis")
-                        st.latex(r"V = \pi \int_a^b y^2 dx")
+                st.markdown("### Between two curves")
+                st.latex(r"Area = \int_a^b [f(x) - g(x)]dx")
 
-                    with col2:
-                        st.markdown("About y-axis")
-                        st.latex(r"V = \pi \int_c^d x^2 dy")
+                st.info("Area is always positive")
 
-                # =========================
-                # Trapezoidal Rule
-                # =========================
-                with st.expander("📊 Trapezoidal Rule"):
+            # =========================
+            # Volume of Revolution
+            # =========================
+            with st.expander("🧊 Volume of Solid of Revolution"):
 
-                    st.latex(r"\int_a^b f(x)dx \approx \frac{h}{2}[y_0 + y_n + 2(y_1 + ... + y_{n-1})]")
+                col1, col2 = st.columns(2)
 
-                    st.markdown("""
-                    Steps:
-                    1. Find h = (b-a)/n  
-                    2. Create table  
-                    3. Apply formula  
-                    """)
+                with col1:
+                    st.markdown("About x-axis")
+                    st.latex(r"V = \pi \int_a^b y^2 dx")
 
-                # =========================
-                # Trigonometric Integrals
-                # =========================
-                with st.expander("📐 Trigonometric Integrals"):
+                with col2:
+                    st.markdown("About y-axis")
+                    st.latex(r"V = \pi \int_c^d x^2 dy")
 
-                    st.latex(r"\int \sin x dx = -\cos x + C")
-                    st.latex(r"\int \cos x dx = \sin x + C")
-                    st.latex(r"\int \sec^2 x dx = \tan x + C")
+            # =========================
+            # Trapezoidal Rule
+            # =========================
+            with st.expander("📊 Trapezoidal Rule"):
 
-                    st.info("If power is odd → use substitution")
+                st.latex(r"\int_a^b f(x)dx \approx \frac{h}{2}[y_0 + y_n + 2(y_1 + ... + y_{n-1})]")
 
-                # =========================
-                # Test Yourself
-                # =========================
-                with st.expander("📝 Test Yourself"):
+                st.markdown("""
+                Steps:
+                1. Find h = (b-a)/n  
+                2. Create table  
+                3. Apply formula  
+                """)
 
-                    st.markdown("""
-                    1. ∫(e^x + e^{-x})dx  
-                    2. ∫4^x dx  
-                    3. ∫(x+3)^4 dx  
-                    """)
+            # =========================
+            # Trigonometric Integrals
+            # =========================
+            with st.expander("📐 Trigonometric Integrals"):
+
+                st.latex(r"\int \sin x dx = -\cos x + C")
+                st.latex(r"\int \cos x dx = \sin x + C")
+                st.latex(r"\int \sec^2 x dx = \tan x + C")
+
+                st.info("If power is odd → use substitution")
+
+            # =========================
+            # Test Yourself
+            # =========================
+            with st.expander("📝 Test Yourself"):
+
+                st.markdown("""
+                1. ∫(e^x + e^{-x})dx  
+                2. ∫4^x dx  
+                3. ∫(x+3)^4 dx  
+                """)
 
         # =========================
         # 📊 VISUAL TAB
@@ -1039,28 +1209,23 @@ with tab_practice:
             st.subheader("📊 Visual Learning")
 
             topic = st.selectbox(
-            "Choose Topic to Visualize",
-            [
-                "Functions",
-                "3D Graph",
-                "Trigonometry",
-                "Differentiation",
-                "Numerical Solution",
-                "Probability Distribution",
-                "Complex Numbers (Argand)"   # 👈 ADD THIS
-            ]
-        )
+                "Choose Topic to Visualize",
+                [
+                    "Functions",
+                    "3D Graph",
+                    "Trigonometry",
+                    "Differentiation",
+                    "Numerical Solution",
+                    "Probability Distribution",
+                    "Complex Numbers (Argand)"
+                ]
+            )
 
-            st.caption("Use ** for powers (e.g. x**2)")
-
-            # =========================
-            # FUNCTIONS
-            # =========================
             if topic == "Functions":
 
-                expr = st.text_input("Enter function f(x):", "x**2")
+                expr = st.text_input("Enter f(x):", "x**2")
 
-                if st.button("Plot Graph"):
+                if st.button("Plot"):
 
                     x = sp.symbols('x')
                     f = sp.sympify(expr)
@@ -1091,8 +1256,13 @@ with tab_practice:
 
                 if st.button("Plot 3D"):
 
+                    import re  # ✅ can also put this at top of file
+
+                    # 🔥 FIX USER INPUT HERE (RIGHT BEFORE sympify)
+                    expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
+
                     x, y = sp.symbols('x y')
-                    f = sp.sympify(expr)
+                    f = sp.sympify(expr)  # ✅ now safe
                     f_lamb = sp.lambdify((x, y), f, "numpy")
 
                     x_vals = np.linspace(-5, 5, 50)
@@ -1101,7 +1271,6 @@ with tab_practice:
                     Z = f_lamb(X, Y)
 
                     fig = go.Figure(data=[go.Surface(z=Z, x=X, y=Y)])
-
                     fig.update_layout(title="3D Surface Plot")
 
                     st.plotly_chart(fig, use_container_width=True)
@@ -1596,110 +1765,166 @@ with tab_practice:
 
                     st.plotly_chart(fig, use_container_width=True)
 
+# =========================
+# 🏆 PROGRESS TAB
+# =========================
+with tab_progress:
+
+    st.subheader("🏆 Your Learning Dashboard")
+
     # =========================
-    # 🏆 PROGRESS TAB
+    # 📊 OVERALL PERFORMANCE
     # =========================
-    with tab_progress:
+    st.markdown("### 📊 Overall Performance")
 
-        st.subheader("🏆 Your Learning Dashboard")
+    if "streak" not in st.session_state:
+        st.session_state.streak = 0
 
-        # =========================
-        # 📊 OVERALL PERFORMANCE
-        # =========================
-        st.markdown("### 📊 Overall Performance")
+    streak = st.session_state.streak
 
-        # Initialize session state if not exists
-        if "scores" not in st.session_state:
-            st.session_state.scores = {
-                "Functions": 80,
-                "Trigonometry": 60,
-                "Probability": 45,
-                "Differentiation": 70
-            }
+    # ✅ GET REAL DATA
+    topic_stats = st.session_state.get("topic_stats", {})
 
-        if "attempts" not in st.session_state:
-            st.session_state.attempts = 12
+    total_attempts = sum(d["attempts"] for d in topic_stats.values())
+    total_correct = sum(d["correct"] for d in topic_stats.values())
 
-        if "streak" not in st.session_state:
-            st.session_state.streak = 5
+    # ✅ CALCULATE REAL ACCURACY
+    if total_attempts > 0:
+        avg_score = int((total_correct / total_attempts) * 100)
+    else:
+        avg_score = 0
 
-        scores = st.session_state.scores
-        attempts = st.session_state.attempts
-        streak = st.session_state.streak
+    attempts = total_attempts
 
-        avg_score = int(sum(scores.values()) / len(scores))
+    # Initialize session state if not exists
+    if "scores" not in st.session_state:
+        st.session_state.scores = {
+            "Functions": 80,
+            "Trigonometry": 60,
+            "Probability": 45,
+            "Differentiation": 70
+        }
 
-        col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
 
-        with col1:
-            st.metric("📈 Accuracy", f"{avg_score}%")
+    with col1:
+        st.metric("📈 Accuracy", f"{avg_score}%")
 
-        with col2:
-            st.metric("🧠 Questions Attempted", attempts)
+    with col2:
+        st.metric("🧠 Questions Attempted", attempts)
 
-        with col3:
-            st.metric("🔥 Study Streak", f"{streak} days")
+    with col3:
+        st.metric("🔥 Study Streak", f"{streak} days")
 
-        st.progress(avg_score / 100)
+    st.progress(avg_score / 100)
 
-        if avg_score < 50:
-            st.error("⚠️ You need more practice")
-        elif avg_score < 80:
-            st.warning("⚡ You're improving")
+    # =========================
+    # 🎉 REWARD SYSTEM (POINTS)
+    # =========================
+    if "score" not in st.session_state:
+        st.session_state.score = 0
+
+    score = st.session_state.score
+
+    st.markdown("### 🎯 Points System")
+    st.metric("Points", score)
+
+    st.progress(min(score / 10, 1.0))
+
+    if score >= 10 and not st.session_state.get("reward_given", False):
+        st.success("🎉 You reached 10 points!")
+        st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
+        st.balloons()
+        st.session_state.reward_given = True
+
+    # =========================
+    # 🏅 LEVEL SYSTEM
+    # =========================
+    if score >= 10 and not st.session_state.get("reward10", False):
+        st.session_state.reward10 = True
+
+    if score >= 20 and not st.session_state.get("reward20", False):
+        st.balloons()
+        st.success("🔥 Level Up!")
+        st.session_state.reward20 = True
+
+    # =========================
+    # 📊 PERFORMANCE FEEDBACK
+    # =========================
+    if avg_score < 50:
+        st.error("⚠️ You need more practice. Focus on weak topics below.")
+    elif avg_score < 80:
+        st.warning("⚡ You're improving. Keep practicing consistently.")
+    else:
+        st.success("🔥 Strong performance! Try harder questions.")
+
+    topic_stats = st.session_state.get("topic_stats", {})
+
+    scores = {}
+
+    for topic, data in topic_stats.items():
+        if data["attempts"] > 0:
+            scores[topic] = int((data["correct"] / data["attempts"]) * 100)
         else:
-            st.success("🔥 Strong performance!")
+            scores[topic] = 0
+    # =========================
+    # 📚 TOPIC PERFORMANCE
+    # =========================
+    st.markdown("### 📚 Topic Performance")
 
-        # =========================
-        # 📚 TOPIC PERFORMANCE
-        # =========================
-        st.markdown("### 📚 Topic Performance")
+    topic_stats = st.session_state.topic_stats
+    scores = {}
 
+    for topic, data in topic_stats.items():
+        if data["attempts"] > 0:
+            scores[topic] = int((data["correct"] / data["attempts"]) * 100)
+        else:
+            scores[topic] = 0
+
+    if scores:
         for topic, score in scores.items():
             st.write(f"**{topic}**")
             st.progress(score / 100)
+    else:
+        st.info("No data yet. Start practicing to see your progress.")
 
-        # =========================
-        # 🔴 WEAKNESS DETECTION
-        # =========================
-        st.markdown("### 🔍 Areas to Improve")
+    # =========================
+    # 🔍 WEAKNESS DETECTION
+    # =========================
+    st.markdown("### 🔍 Areas to Improve")
 
-        weak_topics = [t for t, s in scores.items() if s < 60]
+    weak_topics = [t for t, s in scores.items() if s < 60]
 
-        if weak_topics:
-            for t in weak_topics:
-                st.error(f"🔴 {t}")
-        else:
-            st.success("✅ No major weak areas!")
+    if weak_topics:
+        for t in weak_topics:
+            st.error(f"🔴 {t}")
+    else:
+        st.success("✅ No major weak areas!")
 
-        # =========================
-        # 🤖 AI RECOMMENDATION
-        # =========================
-        st.markdown("### 🤖 AI Recommendations")
+    # =========================
+    # 🤖 AI RECOMMENDATION
+    # =========================
+    st.markdown("### 🤖 AI Recommendations")
 
-        if not weak_topics:
-            st.info("You're doing well across all topics. Try harder questions.")
+    if not weak_topics:
+        st.info("You're doing well across all topics. Try harder questions.")
+    else:
+        for t in weak_topics:
+            if t == "Probability":
+                st.info("📊 Practice Probability in Visualize tab")
+            elif t == "Trigonometry":
+                st.info("📐 Revise trig graphs")
+            elif t == "Functions":
+                st.info("📈 Focus on transformations")
+            elif t == "Differentiation":
+                st.info("📉 Practice derivatives")
 
-        else:
-            for t in weak_topics:
+    # =========================
+    # 🎯 NEXT STEP
+    # =========================
+    st.markdown("### 🎯 Suggested Next Step")
 
-                if t == "Probability":
-                    st.info("📊 Practice Probability Distributions in Visualize tab")
-
-                elif t == "Trigonometry":
-                    st.info("📐 Revise trigonometric graphs and identities")
-
-                elif t == "Functions":
-                    st.info("📈 Focus on graph transformations")
-
-                elif t == "Differentiation":
-                    st.info("📉 Practice derivatives and applications")
-
-        # =========================
-        # 🎯 NEXT STEP GUIDE
-        # =========================
-        st.markdown("### 🎯 Suggested Next Step")
-
-        if weak_topics:
-            st.warning(f"Focus on **{weak_topics[0]}** next for best improvement.")
-        else:
-            st.success("Try mixed practice questions to maintain performance.")
+    if weak_topics:
+        st.warning(f"Focus on **{weak_topics[0]}** next.")
+    else:
+        st.success("Try mixed practice questions.")
