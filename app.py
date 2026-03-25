@@ -4725,27 +4725,84 @@ with tab_notes:
                     st.plotly_chart(fig, use_container_width=True)
 
             # =========================
-            # TRIG
+            # TRIG (UPGRADED)
             # =========================
             elif topic == "Trigonometry":
 
-                func = st.selectbox("Choose Function", ["sin", "cos", "tan"])
+                st.markdown("### 📐 Trigonometry Visualizer")
 
-                x_vals = np.linspace(-2*np.pi, 2*np.pi, 1000)
+                expr_input = st.text_area(
+                    "Enter trigonometric functions (one per line):",
+                    "sin(x)\ncos(x)\ntan(x)"
+                )
 
-                if func == "sin":
-                    y_vals = np.sin(x_vals)
-                elif func == "cos":
-                    y_vals = np.cos(x_vals)
-                else:
-                    y_vals = np.tan(x_vals)
-                    y_vals[np.abs(y_vals) > 10] = np.nan  # fix asymptote explosion
+                expressions = [e.strip() for e in expr_input.split("\n") if e.strip()]
 
-                fig = go.Figure()
+                col1, col2 = st.columns(2)
 
-                fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines'))
+                with col1:
+                    x_min = st.number_input("Min x", value=-2*np.pi)
 
-                st.plotly_chart(fig, use_container_width=True)
+                with col2:
+                    x_max = st.number_input("Max x", value=2*np.pi)
+
+                if x_min >= x_max:
+                    st.error("Min x must be less than Max x")
+                    st.stop()
+
+                if st.button("Plot Trig"):
+
+                    import re
+
+                    x = sp.symbols('x')
+                    x_vals = np.linspace(x_min, x_max, 2000)
+
+                    fig = go.Figure()
+
+                    for expr in expressions:
+                        try:
+                            # 🔥 Fix input
+                            expr_fixed = expr.replace("^", "**")
+                            expr_fixed = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr_fixed)
+
+                            # 🔥 Support extra trig functions
+                            expr_fixed = expr_fixed.replace("sec(x)", "1/cos(x)")
+                            expr_fixed = expr_fixed.replace("cosec(x)", "1/sin(x)")
+                            expr_fixed = expr_fixed.replace("cot(x)", "1/tan(x)")
+
+                            f = sp.sympify(expr_fixed)
+                            f_lamb = sp.lambdify(x, f, "numpy")
+
+                            y_vals = f_lamb(x_vals)
+
+                            # 🔥 Handle asymptotes (VERY IMPORTANT)
+                            y_vals = np.array(y_vals, dtype=float)
+                            y_vals[np.abs(y_vals) > 10] = np.nan
+
+                            fig.add_trace(go.Scatter(
+                                x=x_vals,
+                                y=y_vals,
+                                mode='lines',
+                                name=expr
+                            ))
+
+                        except:
+                            st.error(f"Invalid function: {expr}")
+
+                    fig.update_layout(
+                        title="Trigonometric Functions",
+                        xaxis_title="x",
+                        yaxis_title="y"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.info("""
+                    💡 Tips:
+                    - Use radians (π ≈ 3.14)
+                    - Try: sin(2*x), cos(x/2), tan(x)+1
+                    - sec, cosec, cot are supported
+                    """)
 
             # =========================
             # DIFFERENTIATION
