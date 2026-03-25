@@ -759,14 +759,29 @@ with tab_notes:
             response = client.responses.create(
                 model="gpt-4.1-mini",
                 input=f"""
-                Create clean mathematics notes for {topic}.
+            Create SHORT and CONCISE revision notes for: {topic}
 
-                Rules:
-                - DO NOT mention the word "LaTeX"
-                - Use proper mathematical formatting with $$...$$ for equations
-                - Use clear headings
-                - Tables must NOT contain LaTeX (use normal text like a^2/b^2)
-                """
+            Rules:
+            - Focus on KEY POINTS only (no long explanations)
+            - Use bullet points
+            - Keep it exam-focused (Matriculation / PSPM style)
+            - Include:
+            • Definitions (very short)
+            • Important formulas using $$...$$
+            • Key concepts
+            • Important conditions (parallel, perpendicular, etc.)
+            - DO NOT give long paragraphs
+            - DO NOT copy textbook style
+            - Keep everything simple and easy to memorize
+
+            If topic is VECTORS, prioritize:
+            - formulas
+            - relationships
+            - conditions (e.g. perpendicular, parallel)
+            - steps (ONLY if important)
+
+            Make it look like a QUICK REVISION SHEET.
+            """
             )
 
             # ✅ STORE RAW OUTPUT
@@ -779,20 +794,47 @@ with tab_notes:
 
         if st.session_state.notes_output:
 
-            # ✅ PUT IT HERE
-            raw = st.session_state.notes_output
+            with st.expander("📖 View Generated Notes", expanded=True):
 
-            # split content (tables vs normal text)
+                raw = st.session_state.notes_output
+
+                import re
+                parts = re.split(r"(\|.*\|)", raw)
+
+                cleaned_parts = []
+
+                for part in parts:
+                    if "|" in part:
+                        part = re.sub(r"\\frac{(.*?)}{(.*?)}", r"\1/\2", part)
+                        part = re.sub(r"\\sqrt{(.*?)}", r"sqrt(\1)", part)
+                        part = part.replace("\\leq", "<=").replace("\\geq", ">=")
+                        part = part.replace("^{2}", "^2")
+                    else:
+                        part = re.sub(r"##", "\n##", part)
+                        part = re.sub(r"###", "\n###", part)
+
+                    cleaned_parts.append(part)
+
+                content = "".join(cleaned_parts)
+
+                st.markdown(content)
+
+            # Split tables vs normal text
             parts = re.split(r"(\|.*\|)", raw)
 
             cleaned_parts = []
 
             for part in parts:
-                if "|" in part:  # only clean tables
+                if "|" in part:
+                    # Clean tables only
                     part = re.sub(r"\\frac{(.*?)}{(.*?)}", r"\1/\2", part)
                     part = re.sub(r"\\sqrt{(.*?)}", r"sqrt(\1)", part)
                     part = part.replace("\\leq", "<=").replace("\\geq", ">=")
                     part = part.replace("^{2}", "^2")
+                else:
+                    # Improve headings spacing
+                    part = re.sub(r"##", "\n##", part)
+                    part = re.sub(r"###", "\n###", part)
 
                 cleaned_parts.append(part)
 
@@ -840,8 +882,6 @@ with tab_notes:
                 "Chapter 10: Application of Differentiation"
             ]
         )
-
-        st.markdown(f"### {chapter}")
 
         # ✅ Only show when selected
         if chapter == "Chapter 1: Number System":
@@ -991,6 +1031,2187 @@ with tab_notes:
             - [a, b] → closed interval  
             - (a, b] or [a, b) → mixed  
                     """)
+
+        if chapter == "Chapter 2: Equations, Inequalities and Absolute Values":
+
+            st.markdown("## 📘 Chapter 2: Equations, Inequalities and Absolute Values")
+
+            # =========================
+            # 2.1 EQUATIONS
+            # =========================
+            with st.expander("🧮 2.1 Equations", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Rules of indices  
+                LO2: Surds and conjugates  
+                LO3: Operations on surds  
+                LO4: Laws of logarithms  
+                LO5: Change base of logarithm  
+                LO6: Solve equations  
+                """)
+
+                # -------------------------
+                # INDICES
+                # -------------------------
+                with st.expander("🔢 Indices (Laws)"):
+
+                    st.latex(r"a^m \cdot a^n = a^{m+n}")
+                    st.latex(r"\frac{a^m}{a^n} = a^{m-n}")
+                    st.latex(r"(a^m)^n = a^{mn}")
+                    st.latex(r"a^0 = 1")
+                    st.latex(r"a^{-m} = \frac{1}{a^m}")
+
+                    st.markdown("### ✏️ Example")
+                    st.markdown("""
+            2³ × 2² = 2⁵ = **32**
+                    """)
+
+                # -------------------------
+                # SURDS
+                # -------------------------
+                with st.expander("🧩 Surds"):
+
+                    st.markdown("""
+            - Surd: irrational number (e.g. √2, √3)
+            - Conjugate: a + b√c → a − b√c
+                    """)
+
+                    st.latex(r"\sqrt{ab} = \sqrt{a}\sqrt{b}")
+
+                    st.markdown("### ✏️ Example")
+                    st.markdown("""
+            √45 = √(9×5) = 3√5
+                    """)
+
+                    st.markdown("### 🔄 Rationalising")
+
+                    st.markdown("""
+            Multiply by conjugate
+                    """)
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            1/(2 + √3)
+
+            Multiply by (2 − √3):
+
+            = (2 − √3)/(4 − 3)  
+            = **2 − √3**
+                    """)
+
+                # -------------------------
+                # LOGARITHMS
+                # -------------------------
+                with st.expander("📊 Logarithms"):
+
+                    st.latex(r"\log_a (xy) = \log_a x + \log_a y")
+                    st.latex(r"\log_a \left(\frac{x}{y}\right) = \log_a x - \log_a y")
+                    st.latex(r"\log_a x^n = n \log_a x")
+
+                    st.latex(r"\log_a x = \frac{\log_b x}{\log_b a}")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            log₂ 8 = **3**
+                    """)
+
+                # -------------------------
+                # SOLVING EQUATIONS
+                # -------------------------
+                with st.expander("🧠 Solving Equations"):
+
+                    st.markdown("### 🔢 Index Equation")
+
+                    st.markdown("""
+            2ˣ = 8 → 2ˣ = 2³  
+
+            x = **3**
+                    """)
+
+                    st.markdown("### 🧩 Surd Equation")
+
+                    st.markdown("""
+            √(x+1) = 3  
+
+            x+1 = 9  
+            x = **8**
+                    """)
+
+                    st.markdown("### 📊 Log Equation")
+
+                    st.markdown("""
+            log x = 2  
+
+            x = **100**
+                    """)
+
+
+            # =========================
+            # 2.2 INEQUALITIES
+            # =========================
+            with st.expander("📏 2.2 Inequalities"):
+
+                st.markdown("### 📌 Key Rule")
+                st.warning("⚠️ Reverse sign when multiply/divide by negative")
+
+                # -------------------------
+                # LINEAR
+                # -------------------------
+                with st.expander("📘 Linear Inequalities"):
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            2x − 4 > 8  
+
+            2x > 12  
+            x > **6**
+                    """)
+
+                # -------------------------
+                # QUADRATIC
+                # -------------------------
+                with st.expander("📊 Quadratic Inequalities"):
+
+                    st.markdown("### 🧠 Steps")
+                    st.markdown("""
+            1. Factorise  
+            2. Find critical values  
+            3. Use sign table  
+                    """)
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            x² − 5x − 6 ≥ 0  
+
+            (x − 6)(x + 1) ≥ 0  
+
+            x ≤ −1 or x ≥ 6
+                    """)
+
+                # -------------------------
+                # RATIONAL
+                # -------------------------
+                with st.expander("📉 Rational Inequalities"):
+
+                    st.markdown("### ⚠️ Important")
+                    st.warning("Do NOT cross multiply")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            (x − 2)/(x + 1) > 0  
+
+            Critical: x = 2, -1  
+
+            Answer: x < −1 or x > 2
+                    """)
+
+
+            # =========================
+            # 2.3 ABSOLUTE VALUES
+            # =========================
+            with st.expander("📦 2.3 Absolute Values"):
+
+                st.markdown("### 📌 Definition")
+                st.latex(r"|x| = \begin{cases} x, & x \ge 0 \\ -x, & x < 0 \end{cases}")
+
+                st.markdown("### 📌 Key Idea")
+                st.markdown("""
+            Distance from 0 → always positive
+                """)
+
+                # -------------------------
+                # EQUATIONS
+                # -------------------------
+                with st.expander("🧮 Absolute Equations"):
+
+                    st.markdown("### 📌 Rule")
+                    st.markdown("""
+            |x| = a → x = ±a
+                    """)
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            |x − 2| = 3  
+
+            x − 2 = 3 → x = 5  
+            x − 2 = −3 → x = -1  
+
+            Answer: **x = 5 or x = -1**
+                    """)
+
+                # -------------------------
+                # INEQUALITIES
+                # -------------------------
+                with st.expander("📏 Absolute Inequalities"):
+
+                    st.markdown("### 📌 Rules")
+
+                    st.markdown("""
+            |x| < a → -a < x < a  
+            |x| > a → x < -a or x > a  
+                    """)
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+            |x − 1| < 2  
+
+            -2 < x − 1 < 2  
+
+            -1 < x < 3
+                    """)
+
+        if chapter == "Chapter 3: Sequences and Series":
+
+            st.markdown("## 📘 Chapter 3: Sequences and Series")
+
+            # =========================
+            # 3.1 SEQUENCES & SERIES
+            # =========================
+            with st.expander("🔢 3.1 Sequences and Series", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Write nth term  
+                LO2: Arithmetic sequences & sums  
+                LO3: Geometric sequences & sums  
+                LO4: Sum to infinity  
+                """)
+
+                # -------------------------
+                # BASIC IDEA
+                # -------------------------
+                st.markdown("### 🧠 Basic Concepts")
+
+                st.markdown("""
+            - **Sequence**: ordered list of numbers  
+            - **Series**: sum of sequence  
+
+            Example:  
+            Sequence → 2, 4, 6, 8  
+            Series → 2 + 4 + 6 + 8  
+                """)
+
+                st.latex(r"S_n = T_1 + T_2 + T_3 + \cdots + T_n")
+
+                st.markdown("""
+            - Finite series → limited terms  
+            - Infinite series → continues forever  
+                """)
+
+                # -------------------------
+                # EXAMPLE
+                # -------------------------
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Find first 5 terms of: Tₙ = 2n − 1  
+
+            T₁ = 1  
+            T₂ = 3  
+            T₃ = 5  
+            T₄ = 7  
+            T₅ = 9  
+
+            Answer: **1, 3, 5, 7, 9**
+                """)
+
+
+            # =========================
+            # ARITHMETIC PROGRESSION
+            # =========================
+            with st.expander("📈 Arithmetic Progression (AP)"):
+
+                st.markdown("### 📌 Definition")
+                st.markdown("""
+            Constant difference between terms  
+                """)
+
+                st.markdown("### 📐 Formula")
+
+                st.latex(r"T_n = a + (n-1)d")
+                st.latex(r"S_n = \frac{n}{2}[2a + (n-1)d]")
+
+                st.markdown("""
+            - a = first term  
+            - d = common difference  
+                """)
+
+                # -------------------------
+                # EXAMPLE
+                # -------------------------
+                st.markdown("### ✏️ Example 1")
+
+                st.markdown("""
+            Sequence: 2, 5, 8, 11,...
+
+            a = 2, d = 3  
+
+            Find T₁₀  
+
+            T₁₀ = 2 + (10−1)(3)  
+            = 2 + 27  
+            = **29**
+                """)
+
+                st.markdown("### ✏️ Example 2 (Sum)")
+
+                st.markdown("""
+            Find sum of first 20 terms  
+
+            S₂₀ = 20/2 [2(2) + 19(3)]  
+            = 10 [4 + 57]  
+            = 10(61)  
+            = **610**
+                """)
+
+
+            # =========================
+            # GEOMETRIC PROGRESSION
+            # =========================
+            with st.expander("📊 Geometric Progression (GP)"):
+
+                st.markdown("### 📌 Definition")
+                st.markdown("""
+            Constant ratio between terms  
+                """)
+
+                st.latex(r"T_n = ar^{n-1}")
+                st.latex(r"S_n = \frac{a(1-r^n)}{1-r}")
+                st.latex(r"S_\infty = \frac{a}{1-r}, \quad |r| < 1")
+
+                st.markdown("""
+            - a = first term  
+            - r = common ratio  
+                """)
+
+                # -------------------------
+                # EXAMPLE
+                # -------------------------
+                st.markdown("### ✏️ Example 1")
+
+                st.markdown("""
+            Sequence: 3, 6, 12, 24,...
+
+            a = 3, r = 2  
+
+            Find T₆  
+
+            T₆ = 3(2⁵) = 3(32) = **96**
+                """)
+
+                st.markdown("### ✏️ Example 2 (Sum to infinity)")
+
+                st.markdown("""
+            a = 4, r = 1/2  
+
+            S∞ = 4 / (1 − 1/2)  
+            = 4 / (1/2)  
+            = **8**
+                """)
+
+
+            # =========================
+            # APPLICATIONS
+            # =========================
+            with st.expander("🚗 Applications"):
+
+                st.markdown("### 💰 Depreciation (GP)")
+
+                st.markdown("""
+            Car price = 60000  
+            Depreciation = 10%  
+
+            r = 0.9  
+
+            After 2 years:  
+
+            T₃ = 60000(0.9²)  
+            = 60000(0.81)  
+            = **48600**
+                """)
+
+                st.markdown("### 🏟️ Seats Problem (AP)")
+
+                st.markdown("""
+            First row = 30 seats  
+            Increase = 2  
+
+            Find total seats for 50 rows  
+
+            S₅₀ = 50/2 [2(30) + 49(2)]  
+            = 25 [60 + 98]  
+            = 25(158)  
+            = **3950 seats**
+                """)
+
+
+            # =========================
+            # BINOMIAL EXPANSION
+            # =========================
+            with st.expander("🧩 3.2 Binomial Expansion"):
+
+                st.markdown("### 📌 Factorial")
+                st.latex(r"n! = n(n-1)(n-2)...1")
+
+                st.markdown("""
+            Example:  
+            5! = 120  
+            0! = 1  
+                """)
+
+                st.markdown("### 📌 Binomial Coefficient")
+                st.latex(r"\binom{n}{r} = \frac{n!}{r!(n-r)!}")
+
+                # -------------------------
+                # EXPANSION
+                # -------------------------
+                st.markdown("### 📐 Expansion Formula")
+
+                st.latex(r"(a+b)^n = \sum_{r=0}^{n} \binom{n}{r} a^{n-r} b^r")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Expand (x + 1)³  
+
+            = x³ + 3x² + 3x + 1
+                """)
+
+                # -------------------------
+                # GENERAL TERM
+                # -------------------------
+                st.markdown("### 📌 General Term")
+
+                st.latex(r"T_{r+1} = \binom{n}{r} a^{n-r} b^r")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Find coefficient of x² in (x + 1)⁵  
+
+            General term:  
+
+            Tᵣ₊₁ = 5Cr x^(5−r)
+
+            Set power = 2  
+
+            5 − r = 2 → r = 3  
+
+            Coefficient = 5C3 = **10**
+                """)
+
+                # -------------------------
+                # NEGATIVE / FRACTION
+                # -------------------------
+                st.markdown("### 📊 For Negative / Fraction Power")
+
+                st.latex(r"(1+x)^n = 1 + nx + \frac{n(n-1)}{2!}x^2 + ...")
+
+                st.warning("⚠️ Valid only when |x| < 1")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Expand (1 + x)^(-1)  
+
+            = 1 − x + x² − x³ + ...
+                """)
+
+        if chapter == "Chapter 4: Matrices":
+
+            st.markdown("## 📘 Chapter 4: Matrices & System of Linear Equations")
+
+            # =========================
+            # 4.1 MATRICES
+            # =========================
+            with st.expander("📊 4.1 Matrices", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Identify types of matrices  
+                LO2: Perform matrix operations  
+                LO3: Find transpose  
+                """)
+
+                st.markdown("### 🧠 Types of Matrices")
+
+                st.markdown("""
+            - **Row Matrix**: 1 × n  
+            - **Column Matrix**: m × 1  
+            - **Square Matrix**: n × n  
+            - **Zero Matrix (O)**: All elements = 0  
+            - **Identity Matrix (I)**: Diagonal = 1  
+            - **Diagonal Matrix**: Non-diagonal = 0  
+            - **Upper Triangular**: Below diagonal = 0  
+            - **Lower Triangular**: Above diagonal = 0  
+                """)
+
+                st.markdown("### ➕ Matrix Operations")
+
+                st.markdown("""
+            **Addition/Subtraction**
+            - Same order required  
+            - Add corresponding elements  
+
+            **Scalar Multiplication**
+            - Multiply each element by constant  
+
+            **Matrix Multiplication**
+            - Columns of A = Rows of B  
+            - Not commutative (AB ≠ BA)
+                """)
+
+                st.markdown("### 🧪 Example")
+
+                st.latex(r"A = \begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix},\ B = \begin{pmatrix}5 & 6 \\ 7 & 8\end{pmatrix}")
+
+                st.markdown("""
+            **A + B =**
+            """)
+                st.latex(r"\begin{pmatrix}6 & 8 \\ 10 & 12\end{pmatrix}")
+
+            # =========================
+            # TRANSPOSE
+            # =========================
+            with st.expander("🔄 Transpose of Matrix"):
+
+                st.markdown("### 📌 Definition")
+
+                st.latex(r"A^T = \text{interchange rows and columns}")
+
+                st.markdown("### 🧪 Example")
+
+                st.latex(r"A = \begin{pmatrix}1 & 2 \\ 3 & 4\end{pmatrix}")
+                st.latex(r"A^T = \begin{pmatrix}1 & 3 \\ 2 & 4\end{pmatrix}")
+
+            # =========================
+            # 4.2 DETERMINANT
+            # =========================
+            with st.expander("📐 4.2 Determinant"):
+
+                st.markdown("### 📌 Key Concepts")
+
+                st.markdown("""
+            - Determinant only for **square matrices**
+            - Notation: |A| or det(A)
+                """)
+
+                st.markdown("### 🔢 2×2 Determinant")
+
+                st.latex(r"\begin{vmatrix} a & b \\ c & d \end{vmatrix} = ad - bc")
+
+                st.markdown("### 🧪 Example")
+
+                st.latex(r"\begin{vmatrix} 2 & 5 \\ 3 & 8 \end{vmatrix} = (2)(8) - (5)(3) = 16 - 15 = 1")
+
+                st.markdown("### 🔺 3×3 Concept")
+
+                st.markdown("""
+            Use **cofactors + minors**  
+            Choose row/column with most zeros (faster)
+                """)
+
+            # =========================
+            # MINORS & COFACTORS
+            # =========================
+            with st.expander("🧩 Minors & Cofactors"):
+
+                st.markdown("### 📌 Definitions")
+
+                st.markdown("""
+            - **Minor (Mᵢⱼ)**: determinant after removing row i, column j  
+            - **Cofactor (Cᵢⱼ)**:  
+            """)
+
+                st.latex(r"C_{ij} = (-1)^{i+j} M_{ij}")
+
+                st.markdown("### 🧪 Example")
+
+                st.markdown("""
+            For element at (1,1), remove row 1 and column 1, then find determinant.
+                """)
+
+            # =========================
+            # 4.3 INVERSE MATRIX
+            # =========================
+            with st.expander("🔁 4.3 Inverse Matrix"):
+
+                st.markdown("### 📌 Formula")
+
+                st.latex(r"A^{-1} = \frac{1}{|A|} \cdot adj(A)")
+
+                st.warning("⚠️ Only exists if |A| ≠ 0")
+
+                st.markdown("### 🔢 2×2 Inverse")
+
+                st.latex(r"A = \begin{pmatrix}a & b \\ c & d\end{pmatrix}")
+                st.latex(r"A^{-1} = \frac{1}{ad - bc} \begin{pmatrix}d & -b \\ -c & a\end{pmatrix}")
+
+                st.markdown("### 🧪 Example")
+
+                st.latex(r"A = \begin{pmatrix}2 & 1 \\ 3 & 4\end{pmatrix}")
+
+                st.markdown("""
+            Determinant = (2×4 - 1×3) = 5
+                """)
+
+                st.latex(r"A^{-1} = \frac{1}{5} \begin{pmatrix}4 & -1 \\ -3 & 2\end{pmatrix}")
+
+            # =========================
+            # ERO METHOD
+            # =========================
+            with st.expander("⚙️ Inverse using Row Operations"):
+
+                st.markdown("### 📌 Steps")
+
+                st.markdown("""
+            1. Write augmented matrix [A | I]  
+            2. Convert A → I using row operations  
+            3. Final form becomes [I | A⁻¹]
+                """)
+
+            # =========================
+            # 4.4 SYSTEM OF EQUATIONS
+            # =========================
+            with st.expander("📊 4.4 System of Linear Equations"):
+
+                st.markdown("### 📌 Matrix Form")
+
+                st.latex(r"AX = B")
+
+                st.markdown("""
+            Where:
+            - A = coefficient matrix  
+            - X = variables  
+            - B = constants  
+                """)
+
+                st.markdown("### 🧠 Types of Solutions")
+
+                st.markdown("""
+            - **Unique** → |A| ≠ 0  
+            - **Infinite** → |A| = 0  
+            - **No solution** → inconsistent  
+                """)
+
+            # =========================
+            # METHODS
+            # =========================
+            with st.expander("🛠️ Methods to Solve"):
+
+                st.markdown("""
+            1. Inverse Matrix Method  
+            2. Gauss Elimination  
+            3. Gauss-Jordan  
+            4. Cramer’s Rule  
+                """)
+
+            # =========================
+            # CRAMER'S RULE
+            # =========================
+            with st.expander("📌 Cramer's Rule"):
+
+                st.markdown("### 📌 Formula")
+
+                st.latex(r"x = \frac{A_x}{A}, \quad y = \frac{A_y}{A}, \quad z = \frac{A_z}{A}")
+
+                st.markdown("### 🧪 Example")
+
+                st.markdown("""
+            Solve system using determinants of modified matrices.
+                """)
+
+        if chapter == "Chapter 5: Functions":
+
+            st.markdown("## 📘 Chapter 5: Functions")
+
+            # =========================
+            # 5.1 FUNCTIONS
+            # =========================
+            with st.expander("📌 5.1 Functions", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Define function  
+                LO2: Identify function (vertical line test)  
+                LO3: Identify one-to-one function  
+                LO4: Sketch graphs  
+                LO5: State domain and range  
+                """)
+
+                # -------------------------
+                # Definition
+                # -------------------------
+                st.markdown("### 🧠 Definition")
+
+                st.markdown("""
+            - A **function** is a relation where **each input has exactly ONE output**  
+            - Notation: **y = f(x)**  
+                """)
+
+                # -------------------------
+                # Vertical Line Test
+                # -------------------------
+                st.markdown("### 📏 Vertical Line Test")
+
+                st.markdown("""
+            - Used to check if a graph is a function  
+            - If a vertical line cuts graph **once → function**  
+            - If more than once → **NOT a function**
+                """)
+
+                # -------------------------
+                # One-to-One
+                # -------------------------
+                st.markdown("### 🔁 One-to-One Function")
+
+                st.markdown("""
+            - Each output comes from only ONE input  
+                """)
+
+                st.markdown("**Horizontal Line Test:**")
+                st.markdown("""
+            - Line intersects graph once → one-to-one  
+                """)
+
+                st.markdown("**Algebra Test:**")
+                st.latex(r"f(x_1) = f(x_2) \Rightarrow x_1 = x_2")
+
+                # -------------------------
+                # Domain & Range
+                # -------------------------
+                st.markdown("### 📊 Domain & Range")
+
+                st.markdown("""
+            - **Domain (D)**: possible x-values  
+            - **Range (R)**: possible y-values  
+            - Can be written in **interval notation**
+                """)
+
+            # =========================
+            # GRAPH TYPES
+            # =========================
+            with st.expander("📈 5.1 Graph Sketching"):
+
+                # CONSTANT
+                st.markdown("### 📌 Constant Function")
+                st.latex(r"f(x) = k")
+
+                st.markdown("""
+            - Horizontal line  
+            - Domain: all real numbers  
+            - Range: constant value  
+                """)
+
+                # LINEAR
+                st.markdown("### 📌 Linear Function")
+                st.latex(r"f(x) = mx + c")
+
+                st.markdown("""
+            - Straight line  
+            - Gradient = m  
+                """)
+
+                # QUADRATIC
+                st.markdown("### 📌 Quadratic Function")
+                st.latex(r"f(x) = ax^2 + bx + c")
+
+                st.markdown("""
+            - Parabola  
+            - Turning point exists  
+                """)
+
+                st.latex(r"\text{Vertex} = \left(-\frac{b}{2a}, f\left(-\frac{b}{2a}\right)\right)")
+
+                # CUBIC
+                st.markdown("### 📌 Cubic Function")
+                st.latex(r"f(x) = ax^3 + bx^2 + cx + d")
+
+                st.markdown("""
+            - S-shaped graph  
+            - Has inflection point  
+                """)
+
+                # RATIONAL
+                st.markdown("### 📌 Rational Function")
+                st.latex(r"f(x) = \frac{a}{x}")
+
+                st.markdown("""
+            - Has asymptotes  
+            - Undefined at x = 0  
+                """)
+
+                # ABSOLUTE
+                st.markdown("### 📌 Absolute Function")
+                st.latex(r"f(x) = |x|")
+
+                st.markdown("""
+            - V-shaped graph  
+            - Always positive  
+                """)
+
+                # ROOT
+                st.markdown("### 📌 Square Root Function")
+                st.latex(r"f(x) = \sqrt{x}")
+
+                st.markdown("""
+            - Starts at (0,0)  
+            - Domain: x ≥ 0  
+                """)
+
+                # EXPONENTIAL
+                st.markdown("### 📌 Exponential Function")
+                st.latex(r"f(x) = e^x")
+
+                st.markdown("""
+            - Always increasing  
+            - Horizontal asymptote  
+                """)
+
+                # LOG
+                st.markdown("### 📌 Logarithmic Function")
+                st.latex(r"f(x) = \ln x")
+
+                st.markdown("""
+            - Domain: x > 0  
+            - Vertical asymptote  
+                """)
+
+            # =========================
+            # 5.2 COMPOSITE FUNCTION
+            # =========================
+            with st.expander("🔗 5.2 Composite Functions"):
+
+                st.markdown("### 📌 Definition")
+
+                st.latex(r"(f \circ g)(x) = f(g(x))")
+
+                st.markdown("""
+            - Apply **g first**, then **f**
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Let:
+            - f(x) = 2x − 1  
+            - g(x) = x³  
+
+            Then:
+            - f(g(x)) = 2x³ − 1  
+                """)
+
+            # =========================
+            # 5.3 INVERSE FUNCTION
+            # =========================
+            with st.expander("🔄 5.3 Inverse Functions"):
+
+                st.markdown("### 📌 Definition")
+
+                st.markdown("""
+            - Reverse input and output  
+            - Only exists if function is **one-to-one**
+                """)
+
+                st.markdown("### 📐 Key Property")
+
+                st.latex(r"f(f^{-1}(x)) = x")
+
+                st.markdown("### 🧠 Steps")
+
+                st.markdown("""
+            1. Let y = f(x)  
+            2. Swap x and y  
+            3. Solve for y  
+                """)
+
+                st.markdown("### 📊 Graph")
+
+                st.markdown("""
+            - Symmetric about line y = x  
+                """)
+
+            # =========================
+            # 5.4 EXP & LOG
+            # =========================
+            with st.expander("📊 5.4 Exponential & Log Functions"):
+
+                st.markdown("### 🔁 Relationship")
+
+                st.latex(r"a^x \leftrightarrow \log_a x")
+
+                st.markdown("""
+            - They are **inverse functions**
+                """)
+
+                st.markdown("### 📊 Domain & Range")
+
+                st.markdown("""
+            - Exponential:
+            - Domain: ℝ  
+            - Range: y > 0  
+
+            - Logarithm:
+            - Domain: x > 0  
+            - Range: ℝ  
+                """)
+
+            # =========================
+            # 5.5 TRIG FUNCTIONS
+            # =========================
+            with st.expander("📐 5.5 Trigonometric Functions"):
+
+                st.markdown("### 📌 Basic Graphs")
+
+                st.markdown("""
+            - **sin x**
+            - **cos x**
+            - **tan x**
+                """)
+
+                st.markdown("### 📊 Domain & Range")
+
+                st.markdown("""
+            - sin x:
+            - Domain: ℝ  
+            - Range: [-1,1]
+
+            - cos x:
+            - Domain: ℝ  
+            - Range: [-1,1]
+
+            - tan x:
+            - Domain: ℝ (except asymptotes)  
+            - Range: ℝ  
+                """)
+
+                st.markdown("### 📈 General Form")
+
+                st.latex(r"y = a \sin(bx + c)")
+
+                st.markdown("""
+            - a → amplitude  
+            - b → period  
+            - c → phase shift  
+                """)
+
+        if chapter == "Chapter 6: Polynomials":
+
+            st.markdown("## 📘 Chapter 6: Polynomials")
+
+            # =========================
+            # 6.1 POLYNOMIALS
+            # =========================
+            with st.expander("📌 6.1 Polynomials", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Perform operations on polynomials  
+                LO2: Perform division of polynomials  
+                """)
+
+                # -------------------------
+                # Definition
+                # -------------------------
+                st.markdown("### 🧠 Definition")
+
+                st.latex(r"P(x) = a_n x^n + a_{n-1} x^{n-1} + ... + a_0")
+
+                st.markdown("""
+            - **n** = degree  
+            - **aₙ ≠ 0**  
+            - Coefficients are constants  
+                """)
+
+                # -------------------------
+                # Degree
+                # -------------------------
+                st.markdown("### 📊 Degree")
+
+                st.markdown("""
+            - Highest power of x  
+
+            Examples:
+            - 2x + 5 → degree 1  
+            - x² + 3x + 1 → degree 2  
+            - x³ − x² + 4 → degree 3  
+                """)
+
+                # -------------------------
+                # Operations
+                # -------------------------
+                st.markdown("### ➕ Operations")
+
+                st.markdown("""
+            - Add / subtract → combine like terms  
+            - Multiply → expand brackets  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            (2x + 3) + (x + 5) = **3x + 8**  
+
+            (2x)(x + 3) = **2x² + 6x**  
+                """)
+
+            # =========================
+            # DIVISION
+            # =========================
+            with st.expander("📏 Polynomial Division"):
+
+                st.markdown("### 📌 Long Division")
+
+                st.markdown("""
+            When dividing:
+
+            P(x) = D(x)Q(x) + R(x)
+                """)
+
+                st.latex(r"\frac{P(x)}{D(x)} = Q(x) + \frac{R(x)}{D(x)}")
+
+                st.markdown("""
+            - Q(x) = quotient  
+            - R(x) = remainder  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Divide: x³ + 2x² + 3x + 4 by (x + 1)
+
+            → Result:  
+            Quotient = x² + x + 2  
+            Remainder = 2  
+                """)
+
+            # =========================
+            # 6.2 REMAINDER THEOREM
+            # =========================
+            with st.expander("🧩 6.2 Remainder Theorem"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            If P(x) is divided by (x − a), then:
+
+            Remainder = P(a)
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find remainder of P(x) = x³ + 2x² − x + 1 when divided by (x − 2)
+
+            P(2) = 8 + 8 − 2 + 1 = **15**
+                """)
+
+            # =========================
+            # FACTOR THEOREM
+            # =========================
+            with st.expander("🔄 Factor Theorem"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            - If P(a) = 0 → (x − a) is a factor  
+            - If (x − a) is a factor → P(a) = 0  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Check if (x − 1) is a factor of P(x) = x³ − x² − x + 1  
+
+            P(1) = 1 − 1 − 1 + 1 = 0  
+
+            → YES, it is a factor  
+                """)
+
+            # =========================
+            # ROOTS / ZEROES
+            # =========================
+            with st.expander("🎯 Roots / Zeroes of Polynomial"):
+
+                st.markdown("### 📌 Definition")
+
+                st.markdown("""
+            - If P(a) = 0 → a is a **root (zero)**  
+            - Solve P(x) = 0  
+                """)
+
+                st.markdown("### 🧠 Steps (VERY IMPORTANT)")
+
+                st.markdown("""
+            1. Trial values  
+            2. Use factor theorem  
+            3. Long division  
+            4. Factorise completely  
+            5. Solve P(x) = 0  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Solve: x³ − 6x² + 11x − 6 = 0  
+
+            Factorised: (x−1)(x−2)(x−3)  
+
+            Roots: **1, 2, 3**
+                """)
+
+            # =========================
+            # 6.3 PARTIAL FRACTIONS
+            # =========================
+            with st.expander("📊 6.3 Partial Fractions"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Decompose proper fractions  
+                LO2: Handle improper fractions  
+                """)
+
+                # -------------------------
+                # Proper Fraction
+                # -------------------------
+                st.markdown("### 📏 Proper Fraction")
+
+                st.markdown("""
+            - Degree (numerator) < Degree (denominator)
+                """)
+
+                # CASE 1
+                st.markdown("### 📌 Case 1: Distinct Linear Factors")
+
+                st.latex(r"\frac{px + q}{(x-a)(x-b)} = \frac{A}{x-a} + \frac{B}{x-b}")
+
+                # CASE 2
+                st.markdown("### 📌 Case 2: Repeated Factors")
+
+                st.latex(r"\frac{px + q}{(x-a)^2} = \frac{A}{x-a} + \frac{B}{(x-a)^2}")
+
+                # CASE 3
+                st.markdown("### 📌 Case 3: Quadratic Factor")
+
+                st.latex(r"\frac{px + q}{x^2 + bx + c} = \frac{Ax + B}{x^2 + bx + c}")
+
+                # -------------------------
+                # Example
+                # -------------------------
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Express:
+
+            (2x + 3)/(x−1)(x+2)
+
+            → A/(x−1) + B/(x+2)  
+
+            Solve → A = 1, B = 1  
+
+            Final:
+            = 1/(x−1) + 1/(x+2)
+                """)
+
+            # =========================
+            # IMPROPER FRACTION
+            # =========================
+            with st.expander("⚠️ Improper Fractions"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            - Degree numerator ≥ denominator  
+            - MUST use long division first  
+                """)
+
+                st.markdown("### 🧠 Steps")
+
+                st.markdown("""
+            1. Long division  
+            2. Rewrite expression  
+            3. Apply partial fractions  
+                """)
+
+        if chapter == "Chapter 7: Trigonometry":
+
+            st.markdown("## 📘 Chapter 7: Trigonometry")
+
+            # =========================
+            # 7.1 BASIC IDENTITIES
+            # =========================
+            with st.expander("📐 7.1 Basic Trigonometric Identities", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Understand basic trigonometric ratios  
+                LO2: Use fundamental identities  
+                """)
+
+                st.markdown("### 🔺 Basic Ratios")
+
+                st.latex(r"\sin \theta = \frac{\text{opposite}}{\text{hypotenuse}}")
+                st.latex(r"\cos \theta = \frac{\text{adjacent}}{\text{hypotenuse}}")
+                st.latex(r"\tan \theta = \frac{\text{opposite}}{\text{adjacent}}")
+
+                st.markdown("### 🔁 Important Identities")
+
+                st.latex(r"\sin^2 \theta + \cos^2 \theta = 1")
+                st.latex(r"\tan \theta = \frac{\sin \theta}{\cos \theta}")
+                st.latex(r"1 + \tan^2 \theta = \sec^2 \theta")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            If sinθ = 3/5, find cosθ  
+
+            Using identity:  
+            cos²θ = 1 − sin²θ = 1 − (3/5)² = 16/25  
+
+            cosθ = **4/5**
+                """)
+
+            # =========================
+            # 7.2 UNIT CIRCLE
+            # =========================
+            with st.expander("⭕ 7.2 Unit Circle"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            - Circle with radius 1  
+            - Coordinates: (cosθ, sinθ)  
+                """)
+
+                st.markdown("### 🎯 Special Angles")
+
+                st.markdown("""
+            0° → (1, 0)  
+            90° → (0, 1)  
+            180° → (−1, 0)  
+            270° → (0, −1)  
+                """)
+
+                st.markdown("### ⚠️ Signs (Quadrants)")
+
+                st.info("""
+            Q1: All positive  
+            Q2: sin positive  
+            Q3: tan positive  
+            Q4: cos positive  
+                """)
+
+            # =========================
+            # 7.3 GRAPHS
+            # =========================
+            with st.expander("📈 7.3 Graphs of Trigonometric Functions"):
+
+                st.markdown("### 📊 Key Features")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("""
+            **sin x / cos x**
+            - Range: [-1, 1]  
+            - Period: 2π  
+                    """)
+
+                with col2:
+                    st.markdown("""
+            **tan x**
+            - Range: (-∞, ∞)  
+            - Period: π  
+            - Has asymptotes  
+                    """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = 2 sin x  
+
+            - Amplitude = 2  
+            - Period = 2π  
+                """)
+
+            # =========================
+            # 7.4 TRIG IDENTITIES
+            # =========================
+            with st.expander("🧩 7.4 Trigonometric Identities"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            Simplify expressions using identities  
+                """)
+
+                st.markdown("### 🔁 Common Identities")
+
+                st.latex(r"1 - \sin^2 \theta = \cos^2 \theta")
+                st.latex(r"1 - \cos^2 \theta = \sin^2 \theta")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Simplify: (1 − cos²θ)/sinθ  
+
+            = sin²θ / sinθ  
+            = **sinθ**
+                """)
+
+            # =========================
+            # 7.5 TRIG EQUATIONS
+            # =========================
+            with st.expander("🎯 7.5 Trigonometric Equations"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            Solve equations involving trigonometric functions  
+                """)
+
+                st.markdown("### 🧠 Steps")
+
+                st.markdown("""
+            1. Simplify equation  
+            2. Solve basic trig equation  
+            3. Find all solutions in interval  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Solve: sin x = 1/2, 0 ≤ x ≤ 2π  
+
+            x = π/6, 5π/6  
+                """)
+
+            # =========================
+            # 7.6 ANGLE IDENTITIES
+            # =========================
+            with st.expander("🔄 7.6 Angle Identities"):
+
+                st.markdown("### ➕ Angle Sum")
+
+                st.latex(r"\sin(A+B) = \sin A \cos B + \cos A \sin B")
+                st.latex(r"\cos(A+B) = \cos A \cos B - \sin A \sin B")
+
+                st.markdown("### ➖ Angle Difference")
+
+                st.latex(r"\sin(A-B) = \sin A \cos B - \cos A \sin B")
+                st.latex(r"\cos(A-B) = \cos A \cos B + \sin A \sin B")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find cos(60° + 30°)
+
+            = cos60 cos30 − sin60 sin30  
+            = (1/2)(√3/2) − (√3/2)(1/2)  
+            = **0**
+                """)
+
+            # =========================
+            # 7.7 DOUBLE ANGLE
+            # =========================
+            with st.expander("⚡ 7.7 Double Angle Formulas"):
+
+                st.markdown("### 📌 Formulas")
+
+                st.latex(r"\sin 2\theta = 2\sin\theta\cos\theta")
+                st.latex(r"\cos 2\theta = \cos^2\theta - \sin^2\theta")
+
+                st.markdown("### Alternative Forms")
+
+                st.latex(r"\cos 2\theta = 2\cos^2\theta - 1")
+                st.latex(r"\cos 2\theta = 1 - 2\sin^2\theta")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            If sinθ = 3/5  
+
+            cosθ = 4/5  
+
+            sin2θ = 2(3/5)(4/5) = **24/25**
+                """)
+
+            # =========================
+            # 7.8 TRIG IDENTITIES PROOF
+            # =========================
+            with st.expander("🧠 Proving Identities (Exam Skill)"):
+
+                st.markdown("### 📌 Strategy")
+
+                st.info("""
+            - Start from ONE side only  
+            - Convert everything to sin & cos  
+            - Simplify step-by-step  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Prove: (1 − cos²θ)/(1 + cosθ) = 1 − cosθ  
+
+            LHS = sin²θ/(1 + cosθ)  
+
+            = (1 − cosθ)(1 + cosθ)/(1 + cosθ)  
+
+            = **1 − cosθ (RHS)**
+                """)
+
+        if chapter == "Chapter 8: Limits and Continuity":
+
+            st.markdown("## 📘 Chapter 8: Limits and Continuity")
+
+            # =========================
+            # 8.1 LIMITS
+            # =========================
+            with st.expander("📊 8.1 Limits", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Understand the concept of limits  
+                LO2: Evaluate limits algebraically  
+                """)
+
+                st.markdown("### 🧠 Key Idea")
+
+                st.markdown("""
+            Limit describes the value a function approaches as x → a  
+
+            It does NOT require x = a  
+                """)
+
+                st.latex(r"\lim_{x \to a} f(x) = L")
+
+                st.markdown("""
+            - x → a → input approaches a  
+            - f(x) → L → output approaches L  
+                """)
+
+                # =========================
+                # EXAMPLE
+                # =========================
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find: lim (x² − 4)/(x − 2) as x → 2  
+
+            Factor:
+            (x² − 4) = (x − 2)(x + 2)  
+
+            Cancel:
+            = x + 2  
+
+            Substitute:
+            = 4  
+                """)
+
+            # =========================
+            # 8.2 LIMIT LAWS
+            # =========================
+            with st.expander("📘 8.2 Laws of Limits"):
+
+                st.markdown("### 📦 Basic Laws")
+
+                st.latex(r"\lim (f + g) = \lim f + \lim g")
+                st.latex(r"\lim (fg) = (\lim f)(\lim g)")
+                st.latex(r"\lim \frac{f}{g} = \frac{\lim f}{\lim g}")
+
+                st.markdown("### 🧠 Direct Substitution")
+
+                st.markdown("""
+            If function is continuous → just substitute x = a  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find: lim (3x + 2) as x → 1  
+
+            = 3(1) + 2  
+            = **5**
+                """)
+
+            # =========================
+            # 8.3 INDETERMINATE FORMS
+            # =========================
+            with st.expander("⚠️ 8.3 Indeterminate Forms"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.info("""
+            Forms like 0/0 are undefined → need simplification  
+                """)
+
+                st.markdown("### 🔧 Methods")
+
+                st.markdown("""
+            - Factorisation  
+            - Rationalisation  
+            - Simplify expression  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find: lim (√(x+1) − 1)/x as x → 0  
+
+            Multiply conjugate:
+
+            = [(√(x+1) − 1)(√(x+1) + 1)] / [x(√(x+1)+1)]  
+
+            = x / [x(√(x+1)+1)]  
+
+            Cancel x:
+
+            = 1 / (√(x+1)+1)  
+
+            Substitute x = 0:
+
+            = **1/2**
+                """)
+
+            # =========================
+            # 8.4 ONE-SIDED LIMITS
+            # =========================
+            with st.expander("➡️ 8.4 One-Sided Limits"):
+
+                st.markdown("### 📌 Definitions")
+
+                st.latex(r"\lim_{x \to a^-} f(x) = \text{left-hand limit}")
+                st.latex(r"\lim_{x \to a^+} f(x) = \text{right-hand limit}")
+
+                st.markdown("### 🧠 Key Condition")
+
+                st.info("""
+            Limit exists ONLY IF:
+            LHL = RHL  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            If:
+            f(x) = { x²  , x < 1  
+                { 2x , x ≥ 1  
+
+            LHL = 1² = 1  
+            RHL = 2(1) = 2  
+
+            Since not equal → limit does NOT exist  
+                """)
+
+            # =========================
+            # 8.5 LIMITS AT INFINITY
+            # =========================
+            with st.expander("∞ 8.5 Limits at Infinity"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            Used to determine end behaviour of function  
+                """)
+
+                st.markdown("### 🧠 Rules")
+
+                st.info("""
+            Divide by highest power of x  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find: lim (2x² + 1)/(x² − 3) as x → ∞  
+
+            Divide by x²:
+
+            = (2 + 1/x²)/(1 − 3/x²)  
+
+            As x → ∞:
+            = 2/1  
+
+            = **2**
+                """)
+
+            # =========================
+            # 8.6 CONTINUITY
+            # =========================
+            with st.expander("🔗 8.6 Continuity"):
+
+                st.markdown("### 📌 Definition")
+
+                st.markdown("""
+            Function is continuous at x = a if:
+
+            1. f(a) exists  
+            2. lim f(x) exists  
+            3. lim f(x) = f(a)  
+                """)
+
+                st.latex(r"\lim_{x \to a} f(x) = f(a)")
+
+                st.markdown("### ❌ Types of Discontinuity")
+
+                st.markdown("""
+            - Removable (hole)  
+            - Jump discontinuity  
+            - Infinite discontinuity  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find k such that function is continuous:
+
+            f(x) = { x² , x ≠ 2  
+                { k  , x = 2  
+
+            lim x→2 x² = 4  
+
+            So k = **4**
+                """)
+
+            # =========================
+            # 8.7 GRAPHICAL INTERPRETATION
+            # =========================
+            with st.expander("📈 8.7 Graph Interpretation"):
+
+                st.markdown("### 🧠 Key Idea")
+
+                st.markdown("""
+            - Continuous graph → no breaks  
+            - Hole → removable discontinuity  
+            - Jump → different left/right limits  
+                """)
+
+                st.info("""
+            💡 If you can DRAW it smoothly → it's continuous  
+                """)
+
+        if chapter == "Chapter 9: Differentiation":
+
+            st.markdown("## 📘 Chapter 9: Differentiation")
+
+            # =========================
+            # 9.1 FIRST PRINCIPLE
+            # =========================
+            with st.expander("🧠 9.1 First Principle of Derivative", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Find derivative using first principle  
+                LO2: Understand differentiability  
+                """)
+
+                st.markdown("### 📌 Definition")
+
+                st.latex(r"f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}")
+
+                st.markdown("""
+            - Measures **rate of change**  
+            - Foundation of ALL differentiation  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find derivative of f(x) = x²  
+
+            f'(x) = lim ( (x+h)² − x² ) / h  
+
+            = lim (x² + 2xh + h² − x²)/h  
+
+            = lim (2x + h)  
+
+            = **2x**
+                """)
+
+            # =========================
+            # DIFFERENTIABILITY
+            # =========================
+            with st.expander("🔗 Differentiability"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            A function is differentiable at x = a if derivative exists  
+                """)
+
+                st.markdown("### ⚠️ Important")
+
+                st.info("""
+            Differentiable ⇒ Continuous  
+            BUT  
+            Continuous ≠ Differentiable  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Sharp corner → NOT differentiable  
+                """)
+
+            # =========================
+            # 9.2 RULES
+            # =========================
+            with st.expander("⚡ 9.2 Rules of Differentiation"):
+
+                st.markdown("### 🔹 Basic Rules")
+
+                st.latex(r"\frac{d}{dx}(k) = 0")
+                st.latex(r"\frac{d}{dx}(x^n) = nx^{n-1}")
+                st.latex(r"\frac{d}{dx}(kx^n) = knx^{n-1}")
+
+                st.markdown("### 🔹 Sum Rule")
+
+                st.latex(r"\frac{d}{dx}(u+v) = u' + v'")
+
+                st.markdown("### 🔹 Product Rule")
+
+                st.latex(r"\frac{d}{dx}(uv) = u'v + uv'")
+
+                st.markdown("### 🔹 Quotient Rule")
+
+                st.latex(r"\frac{d}{dx}\left(\frac{u}{v}\right) = \frac{u'v - uv'}{v^2}")
+
+                st.markdown("### 🔹 Chain Rule")
+
+                st.latex(r"\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx}")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Differentiate: y = (x² + 1)(x³)
+
+            = (2x)(x³) + (x²+1)(3x²)  
+            = **2x⁴ + 3x²(x²+1)**
+                """)
+
+            # =========================
+            # GENERAL POWER RULE
+            # =========================
+            with st.expander("📐 General Power Rule"):
+
+                st.latex(r"\frac{d}{dx}[f(x)]^n = n[f(x)]^{n-1} f'(x)")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = (x² + 1)³  
+
+            dy/dx = 3(x² + 1)²(2x)  
+            = **6x(x²+1)²**
+                """)
+
+            # =========================
+            # HIGHER ORDER
+            # =========================
+            with st.expander("📊 Higher Order Derivatives"):
+
+                st.markdown("### 📌 Notation")
+
+                st.latex(r"y' = \frac{dy}{dx}")
+                st.latex(r"y'' = \frac{d^2y}{dx^2}")
+                st.latex(r"y''' = \frac{d^3y}{dx^3}")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = x³  
+
+            y' = 3x²  
+            y'' = 6x  
+            y''' = 6  
+                """)
+
+            # =========================
+            # EXPONENTIAL & LOG
+            # =========================
+            with st.expander("📈 Exponential & Logarithmic Functions"):
+
+                st.markdown("### 🔹 Exponential")
+
+                st.latex(r"\frac{d}{dx}(e^x) = e^x")
+                st.latex(r"\frac{d}{dx}(e^{f(x)}) = e^{f(x)} f'(x)")
+
+                st.markdown("### 🔹 Logarithm")
+
+                st.latex(r"\frac{d}{dx}(\ln x) = \frac{1}{x}")
+                st.latex(r"\frac{d}{dx}(\ln f(x)) = \frac{f'(x)}{f(x)}")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = ln(x² + 1)  
+
+            dy/dx = 2x/(x²+1)
+                """)
+
+            # =========================
+            # TRIG
+            # =========================
+            with st.expander("📐 Trigonometric Differentiation"):
+
+                st.latex(r"\frac{d}{dx}(\sin x) = \cos x")
+                st.latex(r"\frac{d}{dx}(\cos x) = -\sin x")
+                st.latex(r"\frac{d}{dx}(\tan x) = \sec^2 x")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = sin(3x)  
+
+            dy/dx = 3cos(3x)
+                """)
+
+            # =========================
+            # IMPLICIT
+            # =========================
+            with st.expander("🔄 Implicit Differentiation"):
+
+                st.markdown("### 📌 Key Idea")
+
+                st.markdown("""
+            Used when y is NOT isolated  
+                """)
+
+                st.markdown("### 🧠 Steps")
+
+                st.markdown("""
+            1. Differentiate both sides  
+            2. Treat y as function of x  
+            3. Solve for dy/dx  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            xy + y² = 2x  
+
+            Differentiate:
+
+            x(dy/dx) + y + 2y(dy/dx) = 2  
+
+            Group dy/dx:
+
+            (x + 2y)(dy/dx) = 2 − y  
+
+            dy/dx = (2 − y)/(x + 2y)
+                """)
+
+            # =========================
+            # PARAMETRIC
+            # =========================
+            with st.expander("🌀 Parametric Differentiation"):
+
+                st.markdown("### 📌 Formula")
+
+                st.latex(r"\frac{dy}{dx} = \frac{dy/dt}{dx/dt}")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            x = t², y = t³  
+
+            dx/dt = 2t  
+            dy/dt = 3t²  
+
+            dy/dx = 3t² / 2t = **3t/2**
+                """)
+
+            # =========================
+            # SECOND DERIV PARAMETRIC
+            # =========================
+            with st.expander("⚡ Second Derivative (Parametric)"):
+
+                st.latex(r"\frac{d^2y}{dx^2} = \frac{d}{dt}\left(\frac{dy}{dx}\right) \div \frac{dx}{dt}")
+
+                st.markdown("### 🧠 Idea")
+
+                st.markdown("""
+            Differentiate AGAIN using chain rule  
+                """)
+
+        if chapter == "Chapter 10: Application of Differentiation":
+
+            st.markdown("## 📘 Chapter 10: Application of Differentiation")
+
+            # =========================
+            # 10.1 EXTREMUM PROBLEMS
+            # =========================
+            with st.expander("📊 10.1 Extremum Problems", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Find critical points  
+                LO2: Determine relative extrema  
+                LO3: Identify point of inflection  
+                LO4: Sketch graphs  
+                LO5: Solve optimization problems  
+                """)
+
+            # =========================
+            # CRITICAL POINTS
+            # =========================
+            with st.expander("🧠 Critical Points & Stationary Points"):
+
+                st.markdown("### 📌 Definitions")
+
+                st.latex(r"f'(x) = 0 \quad \text{or undefined}")
+
+                st.markdown("""
+            - **Critical number**: value of x where f'(x)=0 or undefined  
+            - **Stationary point**: where f'(x)=0  
+            - **Stationary value**: corresponding y-value  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Find stationary points of:  
+            y = x³ − 6x² + 9x  
+
+            y' = 3x² − 12x + 9  
+            = 3(x² − 4x + 3)  
+            = 3(x−1)(x−3)
+
+            Stationary points:  
+            x = 1, 3  
+
+            Substitute into y:
+
+            y(1) = 4  
+            y(3) = 0  
+
+            👉 Points: (1,4), (3,0)
+                """)
+
+            # =========================
+            # FIRST DERIVATIVE TEST
+            # =========================
+            with st.expander("⚡ First Derivative Test"):
+
+                st.markdown("### 📌 Idea")
+
+                st.markdown("""
+            Check sign of f'(x) before and after critical point  
+                """)
+
+                st.markdown("""
+            - + → − → **Maximum**  
+            - − → + → **Minimum**  
+            - no sign change → **No extremum**  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            For x = 1:
+
+            f'(x) changes from + to − → Maximum  
+
+            For x = 3:
+
+            f'(x) changes from − to + → Minimum  
+                """)
+
+            # =========================
+            # SECOND DERIVATIVE TEST
+            # =========================
+            with st.expander("📐 Second Derivative Test"):
+
+                st.markdown("### 📌 Rules")
+
+                st.latex(r"f''(x) > 0 \Rightarrow \text{Minimum}")
+                st.latex(r"f''(x) < 0 \Rightarrow \text{Maximum}")
+                st.latex(r"f''(x) = 0 \Rightarrow \text{Test fails}")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = x³ − 6x² + 9x  
+
+            y'' = 6x − 12  
+
+            At x = 1 → y'' = -6 → Maximum  
+            At x = 3 → y'' = 6 → Minimum  
+                """)
+
+            # =========================
+            # INFLECTION POINT
+            # =========================
+            with st.expander("🔄 Point of Inflection"):
+
+                st.markdown("### 📌 Definition")
+
+                st.markdown("""
+            Point where concavity changes  
+                """)
+
+                st.markdown("### 🧠 Steps")
+
+                st.markdown("""
+            1. Find f''(x)  
+            2. Solve f''(x)=0  
+            3. Check sign change  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            y = x³  
+
+            y'' = 6x  
+
+            6x = 0 → x = 0  
+
+            Check sign: changes → inflection  
+
+            👉 Point: (0,0)
+                """)
+
+            # =========================
+            # GRAPH SKETCHING
+            # =========================
+            with st.expander("📈 Sketching Graphs"):
+
+                st.markdown("### 🧠 Key Features")
+
+                st.markdown("""
+            1. Intercepts  
+            2. Stationary points  
+            3. Increasing/decreasing intervals  
+            4. Concavity  
+            5. Inflection points  
+                """)
+
+                st.markdown("### 🎯 Tip")
+
+                st.info("""
+            Always combine:
+            - f'(x) → shape  
+            - f''(x) → curvature  
+                """)
+
+            # =========================
+            # OPTIMIZATION
+            # =========================
+            with st.expander("🎯 Optimization Problems"):
+
+                st.markdown("### 📌 Steps")
+
+                st.markdown("""
+            1. Define variables  
+            2. Form equation (Area/Volume)  
+            3. Express in ONE variable  
+            4. Differentiate  
+            5. Solve f'(x)=0  
+            6. Verify using f''(x)  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Rectangular field with 800m fencing (3 sides):
+
+            Let width = x, length = y  
+
+            Equation:  
+            2x + y = 800 → y = 800 − 2x  
+
+            Area:  
+            A = xy = x(800−2x)  
+            = 800x − 2x²  
+
+            A' = 800 − 4x  
+
+            Set = 0:  
+            x = 200  
+
+            y = 400  
+
+            👉 Max area = 80,000 m²
+                """)
+
+            # =========================
+            # RATE OF CHANGE
+            # =========================
+            with st.expander("⏱️ 10.2 Rate of Change"):
+
+                st.markdown("### 📌 Formula")
+
+                st.latex(r"\frac{dy}{dt}")
+
+                st.markdown("""
+            - Positive → increasing  
+            - Negative → decreasing  
+                """)
+
+                st.latex(r"\frac{dy}{dx} = \frac{dy}{dt} \cdot \frac{dt}{dx}")
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            If y = t²  
+
+            dy/dt = 2t  
+
+            At t = 3 → rate = 6  
+                """)
+
+            # =========================
+            # RELATED RATES
+            # =========================
+            with st.expander("🔗 Related Rates Problems"):
+
+                st.markdown("### 📌 Steps")
+
+                st.markdown("""
+            1. Draw diagram  
+            2. Write equation  
+            3. Differentiate w.r.t time  
+            4. Substitute values  
+                """)
+
+                st.markdown("### 🧠 Example")
+
+                st.markdown("""
+            Sphere: V = (4/3)πr³  
+
+            dV/dt = 4πr² dr/dt  
+
+            Given: dV/dt = 2  
+
+            2 = 4π(12²) dr/dt  
+
+            dr/dt ≈ 0.0011 m/min  
+                """)
+
+            # =========================
+            # SUMMARY
+            # =========================
+            with st.expander("🔥 Final Summary"):
+
+                st.markdown("""
+            - f'(x)=0 → stationary point  
+            - f''(x)>0 → minimum  
+            - f''(x)<0 → maximum  
+            - f''(x)=0 → possible inflection  
+
+            💡 Optimization = real-life application  
+            💡 Related rates = time-based change  
+                """)
 
     # =========================
     # SEMESTER 2
@@ -1454,6 +3675,962 @@ with tab_notes:
                 - y = k - p
                 """)
 
+        if chapter == "Chapter 5: Vectors":
+
+            st.markdown("## 📘 Chapter: Vectors")
+
+            # =========================
+            # 1.1 INTRODUCTION TO VECTORS
+            # =========================
+            with st.expander("📌 1.1 Introduction to Vectors", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Understand scalar and vector quantities  
+                LO2: Represent vectors in 2D and 3D  
+                LO3: Perform basic vector operations  
+                """)
+
+                st.markdown("### 🧠 Key Concepts")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("""
+            - **Scalar**: Magnitude only (e.g. mass, time)  
+            - **Vector**: Magnitude + direction (e.g. velocity, force)  
+            - **Notation**: **a**, **AB**, or column vector  
+                    """)
+
+                with col2:
+                    st.markdown("""
+            - **Zero Vector**: magnitude = 0  
+            - **Unit Vector**: magnitude = 1  
+            - **Position Vector**: from origin to a point  
+                    """)
+
+            # =========================
+            # 1.2 VECTOR REPRESENTATION
+            # =========================
+            with st.expander("📐 1.2 Representation of Vectors"):
+
+                st.markdown("### 📌 Column Form")
+
+                st.latex(r"\vec{a} = \begin{pmatrix} a_1 \\ a_2 \end{pmatrix}")
+
+                st.markdown("### 📌 3D Form")
+
+                st.latex(r"\vec{a} = \begin{pmatrix} a_1 \\ a_2 \\ a_3 \end{pmatrix}")
+
+                st.markdown("""
+            - Components represent direction along axes  
+            - Can be written as **ai + bj (+ ck)**  
+                """)
+
+            # =========================
+            # 1.3 VECTOR OPERATIONS
+            # =========================
+            with st.expander("➕ 1.3 Vector Operations"):
+
+                st.markdown("### ➕ Addition")
+
+                st.latex(r"\vec{a} + \vec{b} = \begin{pmatrix} a_1 + b_1 \\ a_2 + b_2 \end{pmatrix}")
+
+                st.markdown("### ➖ Subtraction")
+
+                st.latex(r"\vec{a} - \vec{b} = \begin{pmatrix} a_1 - b_1 \\ a_2 - b_2 \end{pmatrix}")
+
+                st.markdown("### ✖️ Scalar Multiplication")
+
+                st.latex(r"k\vec{a} = \begin{pmatrix} ka_1 \\ ka_2 \end{pmatrix}")
+
+            # =========================
+            # 1.4 MAGNITUDE OF VECTOR
+            # =========================
+            with st.expander("📏 1.4 Magnitude of a Vector"):
+
+                st.markdown("### 📌 Formula")
+
+                st.latex(r"|\vec{a}| = \sqrt{a_1^2 + a_2^2}")
+
+                st.markdown("### 📌 3D Case")
+
+                st.latex(r"|\vec{a}| = \sqrt{a_1^2 + a_2^2 + a_3^2}")
+
+                st.markdown("""
+            - Represents length of vector  
+            - Always positive  
+                """)
+
+            # =========================
+            # 1.5 UNIT VECTOR
+            # =========================
+            with st.expander("🧭 1.5 Unit Vector"):
+
+                st.markdown("### 📌 Definition")
+
+                st.latex(r"\hat{a} = \frac{\vec{a}}{|\vec{a}|}")
+
+                st.markdown("""
+            - Direction same as original vector  
+            - Magnitude = 1  
+                """)
+
+            # =========================
+            # 1.6 DOT PRODUCT
+            # =========================
+            with st.expander("🔗 1.6 Dot Product"):
+
+                st.markdown("### 📌 Formula")
+
+                st.latex(r"\vec{a} \cdot \vec{b} = a_1b_1 + a_2b_2")
+
+                st.markdown("### 📐 Angle Form")
+
+                st.latex(r"\vec{a} \cdot \vec{b} = |\vec{a}||\vec{b}|\cos\theta")
+
+                st.markdown("""
+            - Result is a scalar  
+            - Used to find angle between vectors  
+                """)
+
+            # =========================
+            # 1.7 PARALLEL & PERPENDICULAR
+            # =========================
+            with st.expander("📊 1.7 Vector Relationships"):
+
+                st.markdown("### 📌 Parallel Vectors")
+
+                st.markdown("""
+            - One vector is scalar multiple of another  
+            - **a = k b**
+                """)
+
+                st.markdown("### 📌 Perpendicular Vectors")
+
+                st.markdown("""
+            - Dot product = 0  
+            - **a · b = 0**
+                """)
+
+            # =========================
+            # 1.8 POSITION VECTOR
+            # =========================
+            with st.expander("📍 1.8 Position Vector"):
+
+                st.markdown("### 📌 Definition")
+
+                st.markdown("""
+            - Vector from origin to a point  
+            - Example: A(x, y) → **OA = (x, y)**  
+                """)
+
+                st.markdown("### 📌 Vector Between Two Points")
+
+                st.latex(r"\vec{AB} = \vec{OB} - \vec{OA}")
+
+        if chapter == "Chapter 6: Data Description":
+
+            st.markdown("## 📊 Chapter: Data Description")
+
+            # =========================
+            # 1.1 TYPES OF DATA
+            # =========================
+            with st.expander("📂 1.1 Types of Data", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Understand types of data  
+                LO2: Distinguish between qualitative and quantitative data  
+                """)
+
+                st.markdown("### 🧠 Classification of Data")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("""
+            - **Qualitative Data**: Non-numerical  
+            Example: Gender  
+
+            - **Quantitative Data**: Numerical  
+            Example: Height  
+                    """)
+
+                with col2:
+                    st.markdown("""
+            - **Discrete Data**: Countable  
+            Example: Number of students  
+
+            - **Continuous Data**: Measurable  
+            Example: Weight  
+                    """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Classify the following:
+            1. Number of cars → **Discrete**  
+            2. Temperature → **Continuous**  
+            3. Eye colour → **Qualitative**
+                """)
+
+
+            # =========================
+            # 1.2 FREQUENCY DISTRIBUTION
+            # =========================
+            with st.expander("📊 1.2 Frequency Distribution"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Construct frequency tables  
+                LO2: Understand class intervals  
+                """)
+
+                st.markdown("### 📦 Key Terms")
+
+                st.markdown("""
+            - Class Interval  
+            - Frequency (f)  
+            - Midpoint (x)  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Class: 0–10, 10–20  
+            Find midpoint of 0–10:
+
+            Midpoint = (0 + 10)/2 = **5**
+                """)
+
+
+            # =========================
+            # 1.3 MEAN (UNGROUPED & GROUPED)
+            # =========================
+            with st.expander("📍 1.3 Mean"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Calculate mean for data  
+                """)
+
+                st.markdown("### 📊 Formula")
+
+                st.latex(r"\bar{x} = \frac{\sum x}{n}")
+
+                st.markdown("### ✏️ Example (Ungrouped)")
+
+                st.markdown("""
+            Data: 2, 4, 6, 8  
+
+            Mean = (2+4+6+8)/4 = **5**
+                """)
+
+                st.markdown("### 📊 Grouped Data")
+
+                st.latex(r"\bar{x} = \frac{\sum fx}{\sum f}")
+
+                st.markdown("### ✏️ Example (Grouped)")
+
+                st.markdown("""
+            | Class | f | Midpoint (x) | fx |
+            |------|---|-------------|----|
+            | 0–10 | 2 | 5 | 10 |
+            | 10–20 | 3 | 15 | 45 |
+
+            Σf = 5, Σfx = 55  
+
+            Mean = 55 / 5 = **11**
+                """)
+
+
+            # =========================
+            # 1.4 MEDIAN & MODE
+            # =========================
+            with st.expander("📊 1.4 Median & Mode"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Find median and mode  
+                """)
+
+                st.markdown("### 📊 Median")
+
+                st.markdown("""
+            - Middle value after arranging  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Data: 1, 3, 5, 7, 9  
+
+            Median = **5**
+                """)
+
+                st.markdown("### 📊 Mode")
+
+                st.markdown("""
+            - Most frequent value  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Data: 2, 2, 3, 4  
+
+            Mode = **2**
+                """)
+
+
+            # =========================
+            # 1.5 DISPERSION
+            # =========================
+            with st.expander("📈 1.5 Measures of Dispersion"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Measure spread of data  
+                """)
+
+                st.markdown("### 📏 Range")
+
+                st.latex(r"\text{Range} = \text{Max} - \text{Min}")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Data: 3, 7, 10  
+
+            Range = 10 − 3 = **7**
+                """)
+
+                st.markdown("### 📊 Variance & Standard Deviation")
+
+                st.latex(r"\sigma = \sqrt{\frac{\sum (x - \bar{x})^2}{n}}")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Data: 2, 4, 6  
+
+            Mean = 4  
+
+            (2−4)² = 4  
+            (4−4)² = 0  
+            (6−4)² = 4  
+
+            Variance = (4+0+4)/3 = 8/3  
+
+            SD = √(8/3) ≈ **1.63**
+                """)
+
+
+            # =========================
+            # 1.6 GRAPHICAL REPRESENTATION
+            # =========================
+            with st.expander("📉 1.6 Graphs"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Interpret graphs  
+                """)
+
+                st.markdown("""
+            - Histogram → Continuous  
+            - Bar Chart → Discrete  
+            - Ogive → Cumulative frequency  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Ogive is used to find:
+            - Median  
+            - Quartiles  
+                """)
+
+        if chapter == "Chapter 7: Probability": 
+
+            st.markdown("## 📘 Chapter 7: Probability")
+
+            # =========================
+            # 1.1 RANDOM VARIABLES
+            # =========================
+            with st.expander("🎯 1.1 Random Variables", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Define discrete random variables  
+                LO2: Identify possible values of X  
+                """)
+
+                st.markdown("""
+            - A **random variable (X)** is a function that assigns a number to each outcome  
+            - **Discrete random variable** → takes countable values  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Let X = number of heads when tossing 2 coins  
+
+            Possible values of X:  
+            X = 0, 1, 2  
+                """)
+
+
+            # =========================
+            # 1.2 PROBABILITY DISTRIBUTION
+            # =========================
+            with st.expander("📊 1.2 Probability Distribution"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Construct probability distribution table  
+                """)
+
+                st.markdown("""
+            - A **probability distribution** lists all values of X and their probabilities  
+            - Must satisfy:
+            """)
+
+                st.latex(r"\sum P(X) = 1")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            | X | 0 | 1 | 2 |
+            |---|---|---|---|
+            | P(X) | 0.25 | 0.5 | 0.25 |
+
+            Check: 0.25 + 0.5 + 0.25 = **1 ✔**
+                """)
+
+
+            # =========================
+            # 1.3 EXPECTATION (MEAN)
+            # =========================
+            with st.expander("📍 1.3 Expectation (Mean)"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Find expected value  
+                """)
+
+                st.latex(r"E(X) = \sum xP(x)")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            | X | 0 | 1 | 2 |
+            |---|---|---|---|
+            | P(X) | 0.25 | 0.5 | 0.25 |
+
+            E(X) = (0)(0.25) + (1)(0.5) + (2)(0.25)  
+                = 0 + 0.5 + 0.5  
+                = **1**
+                """)
+
+
+            # =========================
+            # 1.4 VARIANCE & STANDARD DEVIATION
+            # =========================
+            with st.expander("📈 1.4 Variance & Standard Deviation"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Calculate variance and standard deviation  
+                """)
+
+                st.latex(r"\mathrm{Var}(X) = E(X^2) - [E(X)]^2")
+
+                st.latex(r"\sigma = \sqrt{\mathrm{Var}(X)}")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Using previous table:
+
+            E(X) = 1  
+
+            E(X²) = (0²)(0.25) + (1²)(0.5) + (2²)(0.25)  
+                = 0 + 0.5 + 1  
+                = 1.5  
+
+            Var(X) = 1.5 − (1)² = 0.5  
+
+            σ = √0.5 ≈ **0.707**
+                """)
+
+
+            # =========================
+            # 1.5 FUNCTIONS OF RANDOM VARIABLES
+            # =========================
+            with st.expander("🔄 1.5 Functions of Random Variables"):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Find expectation of aX + b  
+                """)
+
+                st.latex(r"E(aX + b) = aE(X) + b")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            Given E(X) = 2  
+
+            Find E(3X + 1):
+
+            E(3X + 1) = 3(2) + 1 = **7**
+                """)
+
+
+            # =========================
+            # 1.6 PROPERTIES
+            # =========================
+            with st.expander("📘 1.6 Important Properties"):
+
+                st.markdown("""
+            - P(X) ≥ 0  
+            - ΣP(X) = 1  
+            - Variance is always ≥ 0  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            If probabilities add to 1.2 → ❌ Invalid  
+
+            If variance = -3 → ❌ Impossible  
+                """)
+
+        if chapter == "Chapter 8: Random Variables":
+
+            st.markdown("## 📘 Chapter 8: Random Variables")
+
+            # =========================
+            # 1.1 BASIC CONCEPT
+            # =========================
+            with st.expander("📌 1.1 Random Variables", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Define random variables  
+                LO2: Distinguish discrete and continuous  
+                """)
+
+                st.markdown("""
+            - A **random variable (X)** assigns a numerical value to outcomes  
+            - Types:
+            - **Discrete** → countable values  
+            - **Continuous** → values in interval  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            - Number of students → **Discrete**  
+            - Time taken → **Continuous**  
+                """)
+
+
+            # =========================
+            # 1.2 DISCRETE DISTRIBUTION
+            # =========================
+            with st.expander("📊 1.2 Discrete Probability Distribution"):
+
+                st.markdown("### 📌 Key Rule")
+
+                st.latex(r"\sum P(X=x) = 1")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            P(X=x) = k(4 - x), x = 0,1,2,3  
+
+            Sum = k(4+3+2+1) = 10k = 1  
+
+            k = **0.1**
+                """)
+
+
+            # =========================
+            # 1.3 CUMULATIVE DISTRIBUTION (DISCRETE)
+            # =========================
+            with st.expander("📈 1.3 Cumulative Distribution Function (CDF)"):
+
+                st.latex(r"F(x) = P(X \le x)")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            If:
+            P(X=1)=0.2, P(X=2)=0.3, P(X=3)=0.5  
+
+            F(2) = 0.2 + 0.3 = **0.5**  
+                """)
+
+                st.markdown("### 📌 Important")
+
+                st.markdown("""
+            - P(X = a) = F(a) − F(a−1)  
+            - P(X > a) = 1 − F(a)  
+                """)
+
+
+            # =========================
+            # 1.4 EXPECTATION (DISCRETE)
+            # =========================
+            with st.expander("📍 1.4 Expectation (Discrete)"):
+
+                st.latex(r"E(X) = \sum xP(X=x)")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            X: 1, 2, 3  
+            P: 1/6, 2/6, 3/6  
+
+            E(X) = (1)(1/6)+(2)(2/6)+(3)(3/6)  
+                = 14/6 = **2.33**
+                """)
+
+                st.markdown("### 📌 Properties")
+
+                st.markdown("""
+            - E(aX + b) = aE(X) + b  
+                """)
+
+
+            # =========================
+            # 1.5 VARIANCE (DISCRETE)
+            # =========================
+            with st.expander("📊 1.5 Variance (Discrete)"):
+
+                st.latex(r"\mathrm{Var}(X) = E(X^2) - [E(X)]^2")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            E(X) = 2  
+
+            E(X²) = 5  
+
+            Var(X) = 5 − 4 = **1**
+                """)
+
+
+            # =========================
+            # 1.6 CONTINUOUS PDF
+            # =========================
+            with st.expander("📉 1.6 Probability Density Function (PDF)"):
+
+                st.markdown("### 📌 Conditions")
+
+                st.latex(r"f(x) \ge 0")
+
+                st.latex(r"\int_{-\infty}^{\infty} f(x)\,dx = 1")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            f(x) = kx, 0 ≤ x ≤ 2  
+
+            ∫ kx dx = k(x²/2) from 0 to 2 = 2k = 1  
+
+            k = **1/2**
+                """)
+
+        if chapter == "Chapter 9: Special Probability Distribution":
+
+            st.markdown("## 🎲 Chapter: Special Probability Distribution")
+
+            # =========================
+            # 9.1 BINOMIAL DISTRIBUTION
+            # =========================
+            with st.expander("📊 9.1 Binomial Distribution", expanded=True):
+
+                st.markdown("### 📌 Learning Outcomes")
+                st.info("""
+                LO1: Identify binomial distribution  
+                LO2: Find mean and variance  
+                LO3: Calculate probability  
+                """)
+
+                st.markdown("### 📌 Conditions (Must satisfy all)")
+                st.markdown("""
+            1. Fixed number of trials (n)  
+            2. Only 2 outcomes (success/failure)  
+            3. Constant probability p  
+            4. Independent trials  
+                """)
+
+                st.markdown("### 📌 Notation")
+                st.latex(r"X \sim B(n, p)")
+
+                st.markdown("### 📌 Probability Formula")
+                st.latex(r"P(X = r) = {n \choose r} p^r (1-p)^{n-r}")
+
+                st.markdown("### 📌 Mean & Variance")
+                st.latex(r"E(X) = np")
+                st.latex(r"\mathrm{Var}(X) = np(1-p)")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            A coin is tossed 3 times  
+
+            Find P(X = 2 heads)
+
+            P(X=2) = 3C2 (0.5)^2 (0.5)^1  
+                = 3 × 0.25 × 0.5  
+                = **0.375**
+                """)
+
+
+            # =========================
+            # BINOMIAL PROBABILITY
+            # =========================
+            with st.expander("📘 Binomial Probability Cases"):
+
+                st.markdown("""
+            - P(X ≥ r) → use table or complement  
+            - P(X ≤ r) → sum probabilities  
+            - P(X > r) = 1 − P(X ≤ r)  
+            - P(X < r) = P(X ≤ r−1)  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            P(X ≤ 2) = P(0) + P(1) + P(2)
+                """)
+
+
+            # =========================
+            # 9.2 POISSON DISTRIBUTION
+            # =========================
+            with st.expander("📊 9.2 Poisson Distribution"):
+
+                st.markdown("### 📌 Definition")
+                st.markdown("""
+            Used for counting events in fixed interval (time/space)
+                """)
+
+                st.latex(r"X \sim Po(\lambda)")
+
+                st.markdown("### 📌 Formula")
+                st.latex(r"P(X=x) = \frac{e^{-\lambda}\lambda^x}{x!}")
+
+                st.markdown("### 📌 Mean & Variance")
+                st.latex(r"E(X)=\lambda")
+                st.latex(r"\mathrm{Var}(X)=\lambda")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            λ = 3  
+
+            Find P(X=2)
+
+            P(X=2) = e^{-3} * 3^2 / 2!  
+                = e^{-3} * 9 / 2  
+                ≈ **0.224**
+                """)
+
+
+            # =========================
+            # 9.3 NORMAL DISTRIBUTION
+            # =========================
+            with st.expander("📈 9.3 Normal Distribution"):
+
+                st.markdown("### 📌 Notation")
+                st.latex(r"X \sim N(\mu, \sigma^2)")
+
+                st.markdown("### 📌 Properties")
+                st.markdown("""
+            - Bell-shaped curve  
+            - Symmetric  
+            - Mean = median = mode  
+            - Total area = 1  
+                """)
+
+                st.markdown("### 📌 Standardisation")
+                st.latex(r"Z = \frac{X - \mu}{\sigma}")
+
+                st.markdown("### 📌 Standard Normal")
+                st.latex(r"Z \sim N(0,1)")
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            X ~ N(10, 9), find Z when X = 14  
+
+            Z = (14 - 10) / 3  
+            = **1.33**
+                """)
+
+
+            # =========================
+            # NORMAL PROBABILITY RULES
+            # =========================
+            with st.expander("📘 Normal Probability Rules"):
+
+                st.markdown("""
+            - P(Z > a) = 1 − P(Z < a)  
+            - P(a < Z < b) = P(Z < b) − P(Z < a)  
+            - Use Z-table (area under curve)  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            P(0 < Z < 1.5)
+
+            = 0.9332 − 0.5  
+            = **0.4332**
+                """)
+
+
+            # =========================
+            # 9.4 NORMAL APPROXIMATION
+            # =========================
+            with st.expander("🔄 9.4 Normal Approximation to Binomial"):
+
+                st.markdown("### 📌 Conditions")
+                st.markdown("""
+            - n is large  
+            - np ≥ 5 and n(1-p) ≥ 5  
+                """)
+
+                st.markdown("### 📌 Approximation")
+                st.latex(r"X \sim B(n,p) \approx N(np, np(1-p))")
+
+                st.markdown("### 📌 Continuity Correction")
+                st.markdown("""
+            Discrete → Continuous adjustment:
+
+            - P(X ≤ a) → P(X ≤ a + 0.5)  
+            - P(X ≥ a) → P(X ≥ a − 0.5)  
+                """)
+
+                st.markdown("### ✏️ Example")
+
+                st.markdown("""
+            X ~ B(100, 0.5)
+
+            Find P(X ≥ 60)
+
+            Approx:
+
+            μ = 50, σ = 5  
+
+            P(X ≥ 59.5)
+
+            Z = (59.5 − 50)/5  
+            = 1.9  
+
+            Answer from table ≈ **0.0287**
+                """)
+
+                # =========================
+                # 1.7 CONTINUOUS PROBABILITY
+                # =========================
+                with st.expander("📊 1.7 Finding Probability (Continuous)"):
+
+                    st.latex(r"P(a < X < b) = \int_a^b f(x)\,dx")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+                f(x)=x/2, 0≤x≤2  
+
+                P(1<X<2) = ∫₁² x/2 dx  
+                        = [x²/4]₁²  
+                        = (4/4 − 1/4)  
+                        = **3/4**
+                    """)
+
+
+                # =========================
+                # 1.8 CDF (CONTINUOUS)
+                # =========================
+                with st.expander("📈 1.8 CDF (Continuous)"):
+
+                    st.latex(r"F(x) = \int_{-\infty}^{x} f(u)\,du")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+                If f(x)=x/2, 0≤x≤2  
+
+                F(x) = x²/4  
+                    """)
+
+
+                # =========================
+                # 1.9 EXPECTATION (CONTINUOUS)
+                # =========================
+                with st.expander("📍 1.9 Expectation (Continuous)"):
+
+                    st.latex(r"E(X) = \int_{-\infty}^{\infty} x f(x)\,dx")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+                f(x)=x/2, 0≤x≤2  
+
+                E(X) = ∫ x(x/2) dx  
+                    = ∫ x²/2 dx  
+                    = [x³/6]₀²  
+                    = 8/6 = **4/3**
+                    """)
+
+
+                # =========================
+                # 1.10 VARIANCE (CONTINUOUS)
+                # =========================
+                with st.expander("📊 1.10 Variance (Continuous)"):
+
+                    st.latex(r"\mathrm{Var}(X) = E(X^2) - [E(X)]^2")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+                E(X)=4/3  
+
+                E(X²)=2  
+
+                Var = 2 − (16/9) = **2/9**
+                    """)
+
+
+                # =========================
+                # 1.11 MEDIAN
+                # =========================
+                with st.expander("📌 1.11 Median"):
+
+                    st.markdown("""
+                Median m satisfies:
+                """)
+
+                    st.latex(r"F(m) = 0.5")
+
+                    st.markdown("### ✏️ Example")
+
+                    st.markdown("""
+                If F(x)=x²/4  
+
+                Set x²/4 = 0.5  
+
+                x² = 2  
+
+                m = **√2**
+                    """)
+
         # =========================
         # 📊 VISUAL TAB
         # =========================
@@ -1471,33 +4648,51 @@ with tab_notes:
                     "Numerical Solution",
                     "Probability Distribution",
                     "Complex Numbers (Argand)",
-                    "Conics (Circles, Parabola, Ellipse)"
+                    "Conics (Circles, Parabola, Ellipse)",
+                    "Vectors"
                 ]
             )
 
             if topic == "Functions":
 
-                expr = st.text_input("Enter f(x):", "x**2")
+                expr_input = st.text_area(
+                    "Enter functions (one per line):",
+                    "x**2\nx**3\nsin(x)"
+                )
+
+                # ✅ correct splitting (ONLY here)
+                expressions = [e.strip() for e in expr_input.split("\n") if e.strip()]
 
                 if st.button("Plot"):
 
                     x = sp.symbols('x')
-                    f = sp.sympify(expr)
-                    f_lamb = sp.lambdify(x, f, "numpy")
-
                     x_vals = np.linspace(-10, 10, 1000)
-                    y_vals = f_lamb(x_vals)
 
                     fig = go.Figure()
 
-                    fig.add_trace(go.Scatter(
-                        x=x_vals,
-                        y=y_vals,
-                        mode='lines',
-                        name='f(x)'
-                    ))
+                    for expr in expressions:
+                        try:
+                            import re
 
-                    fig.update_layout(title="Interactive Graph")
+                            expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr)
+                            expr = expr.replace("^", "**")
+
+                            f = sp.sympify(expr)
+                            f_lamb = sp.lambdify(x, f, "numpy")
+
+                            y_vals = f_lamb(x_vals)
+
+                            fig.add_trace(go.Scatter(
+                                x=x_vals,
+                                y=y_vals,
+                                mode='lines',
+                                name=expr
+                            ))
+
+                        except Exception as e:
+                            st.error(f"Invalid function: {expr}")
+
+                    fig.update_layout(title="Multiple Function Graph")
 
                     st.plotly_chart(fig, use_container_width=True)
 
@@ -2320,6 +5515,299 @@ with tab_notes:
                     st.plotly_chart(fig, use_container_width=True)
 
                     st.latex(rf"\frac{{(x - {h})^2}}{{{a**2}}} + \frac{{(y - {k})^2}}{{{b**2}}} = 1")
+
+            # =========================
+            # VECTORS
+            # =========================
+            elif topic == "Vectors":
+
+                st.markdown("### 🧭 Vector Visualiser")
+
+                mode = st.selectbox(
+                    "Choose Mode",
+                    [
+                        "2D Vectors",
+                        "3D Vectors",
+                        "Dot Product",
+                        "Cross Product",
+                        "Angle Between Vectors",
+                        "Vector Projection",
+                        "3D Line"
+                    ]
+                )
+
+                # =========================
+                # 2D VECTORS
+                # =========================
+                if mode == "2D Vectors":
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        x1 = st.slider("Vector A - x", -10, 10, 3)
+                        y1 = st.slider("Vector A - y", -10, 10, 2)
+
+                    with col2:
+                        x2 = st.slider("Vector B - x", -10, 10, 1)
+                        y2 = st.slider("Vector B - y", -10, 10, 4)
+
+                    fig = go.Figure()
+
+                    # Vector A
+                    fig.add_trace(go.Scatter(
+                        x=[0, x1],
+                        y=[0, y1],
+                        mode='lines+markers',
+                        name='A'
+                    ))
+
+                    # Vector B
+                    fig.add_trace(go.Scatter(
+                        x=[0, x2],
+                        y=[0, y2],
+                        mode='lines+markers',
+                        name='B'
+                    ))
+
+                    # Resultant A+B
+                    fig.add_trace(go.Scatter(
+                        x=[0, x1 + x2],
+                        y=[0, y1 + y2],
+                        mode='lines+markers',
+                        name='A + B'
+                    ))
+
+                    fig.update_layout(
+                        title="2D Vector Addition",
+                        xaxis=dict(range=[-10, 10]),
+                        yaxis=dict(range=[-10, 10]),
+                        showlegend=True
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.latex(rf"\vec{{A}} = ({x1},{y1}), \quad \vec{{B}} = ({x2},{y2})")
+                    st.latex(rf"\vec{{A}} + \vec{{B}} = ({x1 + x2},{y1 + y2})")
+
+                # =========================
+                # 3D VECTORS
+                # =========================
+                elif mode == "3D Vectors":
+
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        x = st.number_input("x", value=2.0, step=0.1)
+                    with col2:
+                        y = st.number_input("y", value=3.0, step=0.1)
+                    with col3:
+                        z = st.number_input("z", value=1.0, step=0.1)
+
+                    fig = go.Figure(data=[go.Cone(
+                        x=[0], y=[0], z=[0],
+                        u=[x], v=[y], w=[z]
+                    )])
+
+                    limit = max(abs(x), abs(y), abs(z), 5)
+
+                    fig.update_layout(
+                        scene=dict(
+                            xaxis=dict(range=[-limit, limit]),
+                            yaxis=dict(range=[-limit, limit]),
+                            zaxis=dict(range=[-limit, limit])
+                        )
+                    )
+
+                    fig.update_layout(title="3D Vector")
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    mag = np.sqrt(x**2 + y**2 + z**2)
+                    st.latex(rf"|\vec{{v}}| = \sqrt{{{x}^2 + {y}^2 + {z}^2}} = {mag:.2f}")
+
+                # =========================
+                # DOT PRODUCT
+                # =========================
+                elif mode == "Dot Product":
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        a1 = st.slider("A_x", -10, 10, 2)
+                        a2 = st.slider("A_y", -10, 10, 3)
+
+                    with col2:
+                        b1 = st.slider("B_x", -10, 10, 4)
+                        b2 = st.slider("B_y", -10, 10, 1)
+
+                    dot = a1*b1 + a2*b2
+
+                    st.latex(rf"\vec{{A}} \cdot \vec{{B}} = {dot}")
+
+                    if dot == 0:
+                        st.success("Vectors are perpendicular 🔥")
+
+                # =========================
+                # CROSS PRODUCT
+                # =========================
+                elif mode == "Cross Product":
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        a1 = st.slider("A_x", -5, 5, 1)
+                        a2 = st.slider("A_y", -5, 5, 2)
+                        a3 = st.slider("A_z", -5, 5, 3)
+
+                    with col2:
+                        b1 = st.slider("B_x", -5, 5, 2)
+                        b2 = st.slider("B_y", -5, 5, 1)
+                        b3 = st.slider("B_z", -5, 5, 0)
+
+                    cross = np.cross([a1, a2, a3], [b1, b2, b3])
+
+                    st.latex(rf"\vec{{A}} \times \vec{{B}} = ({cross[0]}, {cross[1]}, {cross[2]})")
+
+                    mag = np.linalg.norm(cross)
+                    st.success(f"Area of parallelogram = {mag:.2f}")
+
+                elif mode == "Angle Between Vectors":
+
+                    step = st.selectbox("Step size", [1.0, 0.1, 0.01], index=1)
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        a1 = st.number_input("A_x", value=3.0, step=step)
+                        a2 = st.number_input("A_y", value=2.0, step=step)
+
+                    with col2:
+                        b1 = st.number_input("B_x", value=1.0, step=step)
+                        b2 = st.number_input("B_y", value=4.0, step=step)
+
+                    A = np.array([a1, a2])
+                    B = np.array([b1, b2])
+
+                    dot = np.dot(A, B)
+                    magA = np.linalg.norm(A)
+                    magB = np.linalg.norm(B)
+
+                    if magA == 0 or magB == 0:
+                        st.error("Vector magnitude cannot be zero")
+                        st.stop()
+
+                    theta = np.arccos(dot / (magA * magB))
+                    theta_deg = np.degrees(theta)
+
+                    st.latex(rf"\cos\theta = \frac{{{dot}}}{{{magA:.2f} \times {magB:.2f}}}")
+                    st.success(f"Angle ≈ {theta_deg:.2f}°")
+
+                    # Plot
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Scatter(x=[0, a1], y=[0, a2], mode='lines+markers', name='A'))
+                    fig.add_trace(go.Scatter(x=[0, b1], y=[0, b2], mode='lines+markers', name='B'))
+
+                    limit = max(abs(a1), abs(a2), abs(b1), abs(b2), 5) * 1.2
+
+                    fig.update_layout(
+                        xaxis=dict(range=[-limit, limit]),
+                        yaxis=dict(range=[-limit, limit]),
+                        title="Vector Graph"
+
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                elif mode == "Vector Projection":
+
+                    step = st.selectbox("Step size", [1.0, 0.1, 0.01], index=1)
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        a1 = st.number_input("A_x", value=3.0, step=step)
+                        a2 = st.number_input("A_y", value=2.0, step=step)
+
+                    with col2:
+                        b1 = st.number_input("B_x", value=1.0, step=step)
+                        b2 = st.number_input("B_y", value=4.0, step=step)
+
+                    A = np.array([a1, a2])
+                    B = np.array([b1, b2])
+
+                    dot = np.dot(A, B)
+                    magB_sq = np.dot(B, B)
+
+                    if magB_sq == 0:
+                        st.error("Vector B cannot be zero")
+                        st.stop()
+
+                    proj = (dot / magB_sq) * B
+
+                    st.latex(r"\text{proj}_B A = \frac{A \cdot B}{|B|^2} B")
+                    st.latex(rf"\text{{Projection}} = ({proj[0]:.2f}, {proj[1]:.2f})")
+
+                    # Plot
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Scatter(x=[0, a1], y=[0, a2], mode='lines+markers', name='A'))
+                    fig.add_trace(go.Scatter(x=[0, b1], y=[0, b2], mode='lines+markers', name='B'))
+
+                    # Projection vector
+                    fig.add_trace(go.Scatter(
+                        x=[0, proj[0]],
+                        y=[0, proj[1]],
+                        mode='lines+markers',
+                        name='Projection',
+                        line=dict(dash='dash')
+                    ))
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                elif mode == "3D Line":
+
+                    st.markdown("### 📐 Line: r = a + λd")
+
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        x0 = st.slider("Point x", -5, 5, 0)
+                        y0 = st.slider("Point y", -5, 5, 0)
+                        z0 = st.slider("Point z", -5, 5, 0)
+
+                    with col2:
+                        dx = st.slider("Direction x", -5, 5, 1)
+                        dy = st.slider("Direction y", -5, 5, 2)
+                        dz = st.slider("Direction z", -5, 5, 1)
+
+                    t = np.linspace(-5, 5, 100)
+
+                    x = x0 + dx * t
+                    y = y0 + dy * t
+                    z = z0 + dz * t
+
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Scatter3d(
+                        x=x, y=y, z=z,
+                        mode='lines',
+                        name='Line'
+                    ))
+
+                    # Point
+                    fig.add_trace(go.Scatter3d(
+                        x=[x0], y=[y0], z=[z0],
+                        mode='markers+text',
+                        text=["Point"],
+                        textposition="top center"
+                    ))
+
+                    fig.update_layout(title="3D Line")
+
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.latex(rf"\vec{{r}} = ({x0},{y0},{z0}) + \lambda({dx},{dy},{dz})")
 
 # =========================
 # 🏆 PROGRESS TAB
