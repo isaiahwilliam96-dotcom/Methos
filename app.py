@@ -404,6 +404,7 @@ with tab_practice:
     - Include numbers and context if needed
     - DO NOT give solution
     - Only output the question
+    - You MUST follow the structure exactly. No exceptions.
 
     Structure Rules:
     {structure_instruction}
