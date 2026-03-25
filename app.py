@@ -405,6 +405,9 @@ with tab_practice:
     - DO NOT give solution
     - Only output the question
     - You MUST follow the structure exactly. No exceptions.
+    - DO NOT use LaTeX, backslashes, or coding-style formatting
+    - Write all equations in plain readable math (e.g. ln T instead of \\ln T, T₀ instead of T_0)
+    - Use proper human-readable exam format
 
     Structure Rules:
     {structure_instruction}
