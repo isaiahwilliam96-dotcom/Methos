@@ -317,8 +317,9 @@ with tab_practice:
     # -----------------------
     st.markdown("### 🎯 Generate PSPM Questions")
 
-    # ✅ MOVE THIS UP
+    # -----------------------
     # ✅ Persist difficulty
+    # -----------------------
     if "difficulty" not in st.session_state:
         st.session_state.difficulty = "Intermediate"
 
@@ -330,15 +331,67 @@ with tab_practice:
 
     st.session_state.difficulty = difficulty
 
+    # -----------------------
+    # 📘 Topic Input
+    # -----------------------
     pspm_topic = st.text_input(
         "Enter topic (e.g. Differentiation, Integration, Probability):",
         key="pspm_topic"
     )
 
+    # -----------------------
+    # 🧩 Question Structure Controls
+    # -----------------------
+    st.markdown("### 🧩 Question Structure")
+
+    multi_part = st.checkbox("Enable multi-part question", value=True)
+
+    num_parts = st.slider(
+        "Number of main parts (a, b, c...):",
+        min_value=1,
+        max_value=5,
+        value=3
+    )
+
+    include_roman = st.checkbox("Include sub-parts (i, ii, iii)", value=False)
+
+    num_subparts = 0
+    if include_roman:
+        num_subparts = st.slider(
+            "Number of sub-parts per section:",
+            min_value=2,
+            max_value=4,
+            value=2
+        )
+
+    marks = st.checkbox("Include marks allocation", value=True)
+
+    # -----------------------
+    # 🚀 Generate Button
+    # -----------------------
     if st.button("Generate PSPM Question"):
 
         if pspm_topic:
 
+            # -----------------------
+            # 🧠 Structure Instruction Builder
+            # -----------------------
+            structure_instruction = ""
+
+            if multi_part:
+                structure_instruction += f"- The question MUST have {num_parts} main parts labelled (a), (b), (c)...\n"
+
+                if include_roman:
+                    structure_instruction += f"- EACH main part MUST contain {num_subparts} sub-parts labelled (i), (ii), (iii)...\n"
+            else:
+                structure_instruction += "- The question should be a single structured question without parts.\n"
+
+            if marks:
+                structure_instruction += "- Include marks for each part like (3 marks)\n"
+
+            # -----------------------
+            # 🧾 Prompt
+            # -----------------------
             prompt = f"""
     Create a Malaysian Matriculation (PSPM) mathematics question.
 
@@ -352,17 +405,26 @@ with tab_practice:
     - DO NOT give solution
     - Only output the question
 
-    Optional:
-    - Add (a), (b) parts if suitable
+    Structure Rules:
+    {structure_instruction}
+
+    Formatting:
+    - Use proper exam formatting
+    - Make it look like a real PSPM paper
     """
 
-            generated_q = ask_ai(prompt, max_tokens=300)
+            generated_q = ask_ai(prompt, max_tokens=400)
 
-            # ✅ SET AS CURRENT PROBLEM
+            # -----------------------
+            # 💾 Save State
+            # -----------------------
             st.session_state.current_problem = generated_q
             st.session_state.answer = ""
             st.session_state.hint_level = 0
 
+            # -----------------------
+            # 📤 Output
+            # -----------------------
             st.success("PSPM Question Generated!")
             st.write(generated_q)
 
